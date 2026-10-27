@@ -79,9 +79,10 @@ The study consists of the following stages:
 3. **Part A: Multi-text Learning Study** — Practice (4 minutes) → recall → formal reading (15 minutes) → recall
 4. **Part B: Story Reading Study** — Practice stories with titles (4 minutes) → recall → formal stories with titles (15 minutes) → recall
 5. **Part C: Sentence Reading Study** — Instructions → sentence reading (10 minutes) → recall → comprehension questions
-6. **Debriefing & Thank You** — Study completion
+6. **Cognitive Tests** — Letter Comparison (two rounds) → Vocabulary Test
+7. **Debriefing & Thank You** — Study completion
 
-All five recalls use the same speech-to-text editor and allow typing. Part A article ratings remain within each reading phase. Part B comprehension and the legacy Cognitive/Final assessments are no longer in the participant flow.
+All five recalls use the same speech-to-text editor and allow typing. Part A article ratings remain within each reading phase. Cognitive tests follow Part C comprehension. Part B comprehension and the legacy Final assessment remain outside the participant flow.
 
 Material audit: `docs/Study Material/part_b_formal_stories.csv` currently has 24 of 48 segments containing only the placeholder `Text`; the local database matches this source. Complete those source passages before running a real study.
 
@@ -130,13 +131,13 @@ Tests: `npm test`; one file: `npm run test:one -- tests/part-c-timing.test.mjs`.
 
 ### Part C recall and completion
 
-Run `npm run db:migrate:part-c-recall` on existing databases to add `part_c_summaries` without resetting data. Part C now runs sentence reading → recall (speech-to-text or typing) → comprehension questions. Recall must save successfully before questions appear. After the comprehension questions, participants go directly to `/complete` for debriefing. Legacy `/assessment` links redirect to completion. Part A has separate Practice and Formal recalls before Part B.
+Run `npm run db:migrate:part-c-recall` on existing databases to add `part_c_summaries` without resetting data. Part C now runs sentence reading → recall (speech-to-text or typing) → comprehension questions. Recall must save successfully before questions appear. After the comprehension questions save, participants go to `/assessment` for Letter Comparison followed by Vocabulary. Only a successful vocabulary submission advances to `/complete`. Cognitive data continues to use `part_a_letter_item`, `part_a_vocabulary_questions`, and `part_a_vocabulary_responses` for compatibility with existing records; these are active tables despite their historical Part A prefix. Part A has separate Practice and Formal recalls before Part B.
 
 All study countdowns accumulate visible reading time only. Part A (4/15 minutes), Part B (4/15 minutes), and Part C (10 minutes) pause during instructions, topic/story selection, Continue/Switch decisions after sentences, questions/ratings, recall, content loading, and hidden tabs. Part C word/sentence timing uses the same active clock; decision and saving waits are excluded. A/B count while an article remains displayed. Background saves do not stop reading when a word remains displayed. Timeout clips partial-word durations to the remaining reading budget and saves logs before recall. Interrupted sentences use `action_type=timeout`, not a completed `word_reveal`. Saving failures retain data for retry.
 
 ### Existing database: update part names
 
-Stop the app, then run `npm run db:migrate:part-names` once before starting the renamed app. This swaps the former A/C tables in one atomic rename, verifies their contents, and saves a local backup path in the output. It preserves participant IDs, response records, and original material TextIDs (such as `SP1SS0101`) for traceability; sentence material `StudyPartID` is now 3. Re-running is safe. New databases use the current schema directly. The active order is A (multi-text) → B (stories) → C (sentences) → Debriefing. Old A/C URLs now refer to the new task names, so restart an in-progress study from its appropriate new URL.
+Stop the app, then run `npm run db:migrate:part-names` once before starting the renamed app. This swaps the former A/C tables in one atomic rename, verifies their contents, and saves a local backup path in the output. It preserves participant IDs, response records, and original material TextIDs (such as `SP1SS0101`) for traceability; sentence material `StudyPartID` is now 3. Re-running is safe. New databases use the current schema directly. The active order is A (multi-text) → B (stories) → C (sentences) → Cognitive Tests → Debriefing. Old A/C URLs now refer to the new task names, so restart an in-progress study from its appropriate new URL.
 
 ### Part A practice reading timer
 

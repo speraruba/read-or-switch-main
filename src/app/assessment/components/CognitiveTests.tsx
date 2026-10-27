@@ -1,7 +1,7 @@
 "use client";
 import { getApiPath } from "@/lib/api";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { ChangeEvent, MouseEvent } from "react";
 
 interface CognitiveTestsProps {
@@ -61,11 +61,15 @@ const LETTER_COMPARISON_ROUNDS: Record<number, Array<{ left: string; right: stri
 
 
 // Fetched dynamically
-// const vocabQuestions: VocabQuestion[] = [...]; 
+// const vocabQuestions: VocabQuestion[] = [...];
 
 
-export default function CognitiveTests({ participantId, onComplete }: CognitiveTestsProps) {
+export default function CognitiveTests({ participantId, onComplete }: CognitiveTestsProps): React.JSX.Element | null {
     const [subPhase, setSubPhase] = useState<"intro" | "letter" | "vocab">("intro");
+    const savingRef = useRef(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isLoadingVocab, setIsLoadingVocab] = useState(false);
+    const [vocabError, setVocabError] = useState(false);
 
     // Letter Test State
     const [currentRound, setCurrentRound] = useState<number>(1);
@@ -88,19 +92,26 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
     // Or pre-fetch. Let's fetch when entering vocab phase or on mount (if we want them ready).
     // Better to fetch when entering vocab phase to ensure latest.
     const fetchVocabQuestions = async () => {
+        setIsLoadingVocab(true);
+        setVocabError(false);
         try {
             const res = await fetch(getApiPath("/api/part-a/cognitive/vocab"));
+            if (!res.ok) throw new Error("Failed to load vocabulary questions");
             const data = await res.json();
-            if (data.questions) {
-                setVocabQuestions(data.questions);
-            }
+            if (!Array.isArray(data.questions) || data.questions.length === 0) throw new Error("Vocabulary questions are unavailable");
+            setVocabQuestions(data.questions);
+            setStartTime(performance.now());
         } catch (e) {
             console.error("Failed to fetch vocab questions", e);
+            setVocabError(true);
+        } finally {
+            setIsLoadingVocab(false);
         }
     };
 
     const handleLetterResponse = (event: MouseEvent<HTMLButtonElement>, absoluteId: number, val: "S" | "D", problem: { left: string, right: string, answer: "S" | "D" }) => {
-        const reactionTime = startTime ? event.timeStamp - startTime : 0;
+        if (savingRef.current) return;
+        const reactionTime = startTime ? Math.max(0, Math.round(event.timeStamp - startTime)) : 0;
 
         setLetterResponses(prev => ({ ...prev, [absoluteId]: val }));
 
@@ -118,6 +129,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
     };
 
     const handleLetterSubmit = async (event: MouseEvent<HTMLButtonElement>) => {
+        if (savingRef.current || !LETTER_COMPARISON_ROUNDS[currentRound].every((_, index) => letterResponses[(currentRound - 1) * 10 + index + 1])) return;
         const eventTimestamp = event.timeStamp;
 
         const totalRounds = Object.keys(LETTER_COMPARISON_ROUNDS).length;
@@ -129,6 +141,8 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
             window.scrollTo(0, 0); // Scroll to top for new round
         } else {
             // Submit all data and move to Vocab
+            savingRef.current = true;
+            setIsSaving(true);
             try {
                 const res = await fetch(getApiPath("/api/part-a/cognitive/letter"), {
                     method: "POST",
@@ -141,17 +155,20 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                 }
 
                 setSubPhase("vocab");
-                setStartTime(eventTimestamp);
-                fetchVocabQuestions();
+                await fetchVocabQuestions();
             } catch (e) {
                 console.error(e);
                 alert("Failed to save letter data. Please try again.");
+            } finally {
+                savingRef.current = false;
+                setIsSaving(false);
             }
         }
     };
 
     const handleVocabResponse = (event: ChangeEvent<HTMLInputElement>, id: number, val: string) => {
-        const reactionTime = startTime ? event.timeStamp - startTime : 0;
+        if (savingRef.current) return;
+        const reactionTime = startTime ? Math.max(0, Math.round(event.timeStamp - startTime)) : 0;
 
         setVocabResponses(prev => ({ ...prev, [id]: val }));
 
@@ -171,6 +188,9 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
     };
 
     const handleVocabSubmit = async () => {
+        if (savingRef.current || isLoadingVocab || vocabError || vocabQuestions.length === 0 || !vocabQuestions.every(q => vocabResponses[q.id])) return;
+        savingRef.current = true;
+        setIsSaving(true);
         try {
             const res = await fetch(getApiPath("/api/part-a/cognitive/vocab"), {
                 method: "POST",
@@ -186,6 +206,9 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
         } catch (e) {
             console.error(e);
             alert("Failed to save vocab data. Please try again.");
+        } finally {
+            savingRef.current = false;
+            setIsSaving(false);
         }
     };
 
@@ -240,14 +263,14 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                     {currentProblems.map((prob, idx) => {
                         const absoluteId = idOffset + idx + 1;
                         const response = letterResponses[absoluteId];
-                        
+
                         return (
-                            <div 
-                                key={absoluteId} 
+                            <div
+                                key={absoluteId}
                                 className={`
                                     group relative flex items-center justify-between p-4 rounded-xl border transition-all duration-200
-                                    ${response 
-                                        ? "bg-[var(--surface)] border-[var(--foreground)] ring-1 ring-[var(--foreground)] shadow-sm" 
+                                    ${response
+                                        ? "bg-[var(--surface)] border-[var(--foreground)] ring-1 ring-[var(--foreground)] shadow-sm"
                                         : "bg-[var(--surface)] border-[var(--border)] hover:border-[var(--muted)] hover:shadow-sm"
                                     }
                                 `}
@@ -262,6 +285,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                                     <button
                                         type="button"
                                         aria-label="Same (S)"
+                                        disabled={isSaving}
                                         onClick={(event) => handleLetterResponse(event, absoluteId, "S", prob)}
                                         className={`
                                             h-10 w-10 rounded-lg text-sm font-semibold transition-all duration-200 border flex items-center justify-center
@@ -276,6 +300,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                                     <button
                                         type="button"
                                         aria-label="Different (D)"
+                                        disabled={isSaving}
                                         onClick={(event) => handleLetterResponse(event, absoluteId, "D", prob)}
                                         className={`
                                             h-10 w-10 rounded-lg text-sm font-semibold transition-all duration-200 border flex items-center justify-center
@@ -294,7 +319,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                                         {prob.right}
                                     </span>
                                 </div>
-                                
+
                                 <div className="absolute left-2 top-1/2 -translate-y-1/2">
                                     <span className="text-[10px] font-mono text-[var(--border)] group-hover:text-[var(--muted)] transition-colors">
                                         {String(absoluteId).padStart(2, '0')}
@@ -310,9 +335,10 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                         <button
                             type="button"
                             onClick={handleLetterSubmit}
+                            disabled={isSaving || !currentProblems.every((_, index) => letterResponses[idOffset + index + 1])}
                             className="bg-[var(--primary)] text-[var(--primary-fg)] px-8 py-3 rounded-full font-medium hover:opacity-90 transition-all shadow-lg hover:shadow-xl focus-ring flex items-center gap-2 transform active:scale-95"
                         >
-                            {currentRound < Object.keys(LETTER_COMPARISON_ROUNDS).length ? (
+                            {isSaving ? "Saving…" : currentRound < Object.keys(LETTER_COMPARISON_ROUNDS).length ? (
                                 <>Next Round <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></>
                             ) : (
                                 <>Complete Section <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></>
@@ -320,7 +346,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                         </button>
                     </div>
                 </div>
-                
+
                 <div className="h-24" />
             </div>
         );
@@ -344,6 +370,8 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                     </div>
                 </div>
 
+                {isLoadingVocab && <p role="status">Loading vocabulary questions…</p>}
+                {vocabError && <div role="alert"><p>Vocabulary questions could not be loaded.</p><button type="button" onClick={fetchVocabQuestions} className="my-4 underline focus-ring">Retry loading questions</button></div>}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {vocabQuestions.map((q) => (
                         <div key={q.id} className="border border-[var(--border)] p-5 rounded-lg bg-[var(--surface)]">
@@ -355,6 +383,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                                             type="radio"
                                             name={`vocab-${q.id}`}
                                             value={opt}
+                                            disabled={isSaving}
                                             checked={vocabResponses[q.id] === opt}
                                             onChange={(event) => handleVocabResponse(event, q.id, opt)}
                                             className="w-4 h-4 text-[var(--primary)] focus:ring-[var(--primary)]"
@@ -368,8 +397,8 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                 </div>
 
                 <div className="text-center mt-12">
-                    <button type="button" onClick={handleVocabSubmit} className="bg-[var(--primary)] text-[var(--primary-fg)] px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-all focus-ring shadow-sm">
-                        Finish Vocabulary Test
+                    <button type="button" onClick={handleVocabSubmit} disabled={isSaving || isLoadingVocab || vocabError || vocabQuestions.length === 0 || !vocabQuestions.every(q => vocabResponses[q.id])} className="bg-[var(--primary)] text-[var(--primary-fg)] px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-all focus-ring shadow-sm disabled:opacity-50">
+                        {isSaving ? "Saving…" : "Finish Vocabulary Test"}
                     </button>
                 </div>
             </div>

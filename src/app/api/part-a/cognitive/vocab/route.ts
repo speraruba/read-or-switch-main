@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { RowDataPacket } from "mysql2";
 
-export async function GET(request: Request) {
+export async function GET() {
     try {
         const questions = await query(
             `SELECT id, word, option_1, option_2, option_3, option_4, option_5, option_6, correct_option 
@@ -37,7 +37,6 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        console.log("Received vocab submission:", JSON.stringify(body, null, 2));
         const { participantId, responses } = body;
 
         // responses: Array of { questionId, responseVal, isCorrect, reactionTimeMs }
@@ -51,7 +50,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Invalid participant ID format" }, { status: 400 });
         }
 
-        console.log(`Saving ${responses.length} vocab responses for participant ${participantId}`);
 
         for (const r of responses) {
             // Extract number from "1 - speak..."

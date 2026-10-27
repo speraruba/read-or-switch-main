@@ -13,9 +13,10 @@ The experiment consists of the following stages:
 3.  **Part A: Multi-text Learning Study**: Practice (4 minutes) → speech-to-text recall → Formal (15 minutes) → speech-to-text recall.
 4.  **Part B: Story Reading Study**: Practice (4 minutes, stories with titles) → speech-to-text recall → Formal (15 minutes, stories with titles) → speech-to-text recall.
 5.  **Part C: Sentence Reading Study**: Instructions → reading (10 minutes) → speech-to-text recall → comprehension questions.
-6.  **Debriefing and Thank You**.
+6.  **Cognitive Tests**: Letter Comparison (two rounds of ten pairs) → Vocabulary Test.
+7.  **Debriefing and Thank You**.
 
-The execution order is A → B → C. The five recalls allow speech-to-text and keyboard editing. Part B comprehension questions and Cognitive/Final assessments are excluded from the current flow; their historical data remains intact.
+The execution order is A → B → C. The five recalls allow speech-to-text and keyboard editing. Cognitive tests run after Part C comprehension and before debriefing. Part B comprehension questions and the Final assessment remain outside the current flow.
 
 ## 4. Functional Requirements
 
@@ -80,7 +81,9 @@ This part investigates the "foraging" behavior.
     -   **Comprehension Questions**: User answers questions about the sentences.
 
 ### 4.5 Cognitive Measures
--   Legacy components only; not part of the current participant flow.
+-   After Part C comprehension saves, show Letter Comparison, then Vocabulary.
+-   Save responses, correctness, and reaction times in milliseconds before advancing. Loading or saving failures must not skip a test.
+-   Retain the existing `part_a_letter_item` and `part_a_vocabulary_*` tables and records.
 
 ## 5. Content & Stimuli
 The content includes stories with alternative endings for the text segments.

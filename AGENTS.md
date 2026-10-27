@@ -149,7 +149,7 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Do not mix heavy refactors with bugfixes unless required.
 
 ## 23) Project scope reminders
-- Current flow: consent → demographics → A (practice + recall, formal + recall) → B (practice + recall, formal + recall) → C (reading + recall + comprehension) → debrief. Cognitive/Final components are legacy only. Timing/logging critical (see PRD).
+- Current flow: consent → demographics → A (practice + recall, formal + recall) → B (practice + recall, formal + recall) → C (reading + recall + comprehension) → cognitive (letter comparison + vocabulary) → debrief. Cognitive tests live at `/assessment` and retain the existing `part_a_letter_item` / `part_a_vocabulary_*` storage. Only FinalAssessment is legacy. Timing/logging critical (see PRD).
 - Maintain data logging and timing expectations when adjusting flows.
 
 ## 24) If you add tooling or tests

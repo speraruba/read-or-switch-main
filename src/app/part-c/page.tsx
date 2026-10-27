@@ -247,7 +247,7 @@ function PartCContent() {
     };
 
     const handleQuestionsComplete = () => {
-        router.push(`/complete?participant_id=${encodeURIComponent(participantId ?? "")}`);
+        router.push(`/assessment?participant_id=${encodeURIComponent(participantId ?? "")}`);
     };
 
 
