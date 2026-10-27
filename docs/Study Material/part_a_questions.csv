@@ -1,2 +1,693 @@
-StudyPartID,SentSet,TextID,SentOrder,P1ConID,PredictID,Make_sense_ID,TextTypeID,GenTypeID,Questions,Option_1,Option_2,Option_3,Option_4,CorrectAns
-1,1,SP1SS0101,1,Pre1MS0TT1G1,1,0,1,1,Giraffes are known for their long necks and zebras for their ____. ,Word_1,Word_2,Word_3,Word_4,Word_3
+questionID,passID,topID,subtopID,conID,passOrder,passTitle,questionText,choiceA,choiceB,choiceC,choiceD,correctAns
+1011011,101101,1,101,1,1,pTitle0101101,"A medical supplier is interested in understanding the market size of bone graft material.
+What kind of population may be in the market?",an athlete with severe fractures,a retiree with significant bone loss,a patient suffering from cancer,all of the above,d
+1011012,101101,1,101,1,1,pTitle0101101,"A tissue banks is responsible for screening the medical histories of the donors and freeze
+the donated bones (T/F)",TRUE,FALSE,"","",a
+1011013,101101,1,101,1,1,pTitle0101101,What could be a risk that is associated with surgical procedure of bone graft?,osteoporosis,renal failure,rejection of transplants,none of the above,c
+1011014,101101,1,101,1,1,pTitle0101101,"Due to ethical concerns, all bone graft materials can only come from donors who have
+died (T/F)",TRUE,FALSE,"","",b
+1011015,101101,1,101,1,1,pTitle0101101,"A medical student is asked by his professor to explain how a bone graft works in a
+patient. What should the student say?",it provides a framework for growth of fresh and living bone,it dissolves into essential compounds like calcium and phosphate,it stimulates immune cells to engulf cancerous bone cells,it increases blood flow to the implanted area,a
+1011021,101102,1,101,1,2,pTitle0101102,"Several different cell types work together to maintain bone integrity, and many evolve
+from osteogenic cells. Where are these osteogenic cells typically located?",bone junction,bone periosteum,cartilage,none of the above,b
+1011022,101102,1,101,1,2,pTitle0101102,"A scientist studying a bone specimen found scarce osteogenic cell in a sample. What could
+be a possible reason for this finding?",previous surgery or infection,bone gaps,prior radiation therapy,all of the above,d
+1011023,101102,1,101,1,2,pTitle0101102,Pelvic iliac crests can provide graft material to other parts of the body (T/F),TRUE,FALSE,"","",a
+1011031,101103,1,101,1,3,pTitle0101103,"Bone graft cannot be considered in a patient who needs a large segments of bone that are
+more than 6 inches in length (T/F)",TRUE,FALSE,"","",b
+1011032,101103,1,101,1,3,pTitle0101103,"A 65-year-old lady with bone loss fell in the bathroom, where she landed on her back.
+After the doctor examines her, a spinal fusion is needed for her healing. What does spinal
+fusion entail?",stimulate healing between spine joints,bridge vertebrae to provide stabilization,relieve pressure on nerve roots of effected area,all of the above,d
+1011033,101103,1,101,1,3,pTitle0101103,"On top of stabilizing fractures, graft material can also regenerate the bone tissue around
+implanted devices (T/F)",TRUE,FALSE,"","",a
+1011041,101104,1,101,1,4,pTitle0101104,"Certain chronic disease can impede bone growth in patients compared to healthy
+individuals, causing them to need bone graft to heal better. What are some examples of
+these chronic diseases?",diabetes,asthma,melanoma,renal failure,a
+1011042,101104,1,101,1,4,pTitle0101104,"Although nicotine has many adverse health effects in smokers, studies have not shown
+that it impedes bone healing. (T/F)",TRUE,FALSE,"","",b
+1011043,101104,1,101,1,4,pTitle0101104,"Because of higher autoimmune attack rate in smokers, surgeons typically avoid
+performing bone grafts on them because the risks are greater than the benefit. (T/F)",TRUE,FALSE,"","",b
+1011051,101105,1,101,1,5,pTitle0101105,"A man receives bone graft in his hip after suffering from a severe car accident. The
+procedure went smoothly and he feels well. How long should he expect the bone graft to
+heal completely?",1 day,1 week,1 month,1 year,d
+1011052,101105,1,101,1,5,pTitle0101105,"A man receives bone graft in his hip after suffering from a severe car accident. The
+procedure went smoothly and he feels well. What medications may be prescribed during
+his recovery period?",anti-diuretics,antibiotics,systemic corticosteroids,muscle relaxant,b
+1011053,101105,1,101,1,5,pTitle0101105,"A man is wearing a cast around the site of bone graft. It is more beneficial to apply heat
+than cold to the injured site because blood circulation can speed up healing. (T/F)",TRUE,FALSE,"","",a
+1011061,101106,1,101,1,6,pTitle0101106,"Many substitutes to bone graft are available on the market, such as Demineralized Bone
+Matrix (DBM). What can be found in DBM?",ceramic microstructure,vinyl composite,calcium gluconate,collagen,d
+1011062,101106,1,101,1,6,pTitle0101106,"Although bone graft alternatives offer low risks of disease infection, they can still be
+associated with inflammation in some patients (T/F)",TRUE,FALSE,"","",a
+1011063,101106,1,101,1,6,pTitle0101106,What is an example of graft composite?,collagen and ceramic,DBM and bone marrow cells,all of the above,none of the above,c
+1011071,101107,1,101,1,7,pTitle0101107,"A professional climber lost consciousness falling from a cliff. His fibula is noticeably
+deformed, suggesting fracture. Which layer of the bone is likely damaged in a fracture?",cortex,marrow,metaphysis,inner layer,a
+1011072,101107,1,101,1,7,pTitle0101107,What first forms the temporary frame for healing when a fracture occurs?,mature bone,cartilage,hematoma clot,osteogenic cells,c
+1011073,101107,1,101,1,7,pTitle0101107,"When bone is fractured, it takes several steps for the hard callus of immature bone to
+form. During bony callus formation, what mineral is added to make the bone more rigid?",iron,phosphorus,calcium,potassium,c
+1011081,101108,1,101,1,8,pTitle0101108,"There are many systemic factors that can affect fracture healing, such as obesity. Which
+of the following is not a systemic factor?",advanced age,anemia from iron deficiency,endocrine conditions such as diabetes,misalignment at the fracture site,d
+1011082,101108,1,101,1,8,pTitle0101108,"New advances in bone stimulators, such as electromagnetic stimulation, have been
+shown to be more effective than bone graft (T/F)",TRUE,FALSE,"","",b
+1011083,101108,1,101,1,8,pTitle0101108,Excessive movement is a local factor that can lead to delayed healing or non-union (T/F),TRUE,FALSE,"","",a
+1011091,101109,1,101,1,9,pTitle0101109,What is not an applications of bone graft technology in dentistry?,teeth saving,gingivitis,extractions,implants,b
+1011092,101109,1,101,1,9,pTitle0101109,"An elderly man visits the dentist for the first time in eight years. He has lost most of his
+molars due to poor dental care. The dentist notices his face look saggy. What process best
+explains his facial appearance?",Stretched skin due to collagen loss,jaw bone resorption,weight gain,mandibular osteoarthritis,b
+1011093,101109,1,101,1,9,pTitle0101109,"In dental application, bone grafting material comes in a variety of forms, such as powder,
+granules, putty or a gel. (T/F)",TRUE,FALSE,"","",a
+1011101,101110,1,101,1,10,pTitle0101110,What are some physiological processes that growth factors involved in?,cell growth and differentiation,tissue repair and regeneration,biological feedback loops,all of the above,d
+1011102,101110,1,101,1,10,pTitle0101110,"Platelet-derived growth factor is a protein solely expressed by platelets and not any other
+cell types (T/F)",TRUE,FALSE,"","",b
+1011103,101110,1,101,1,10,pTitle0101110,"Faster healing achieved through the addition of growth factors such as PDGF can reduce
+what type of risks?",failed implants,clotting,atrophy,none of the above,a
+1011111,101111,1,101,1,11,pTitle0101111,"New bone graft technology that is less likely to spark immune rejection use which type of
+material?",organic collagen,patient stem cells,allogenic bone,none of the above,b
+1011112,101111,1,101,1,11,pTitle0101111,"What is the main limitation that researchers have overcome with the special bioreactor to
+synthesize bone graft?",size limitation,genetic compatibility,speed restriction,all of the above,a
+1011113,101111,1,101,1,11,pTitle0101111,"One challenge of developing personalized bone graft for pediatric patients is that they can
+quickly outgrow the graft (T/F)",TRUE,FALSE,"","",a
+1012011,101201,1,101,2,1,pTitle0101201,"A medical supplier is interested in understanding the market size of bone graft material.
+What kind of population may be in the market?",an athlete with severe fractures,a retiree with significant bone loss,a patient suffering from cancer,all of the above,d
+1012012,101201,1,101,2,1,pTitle0101201,"A tissue banks is responsible for screening the medical histories of the donors and freeze
+the donated bones (T/F)",TRUE,FALSE,"","",a
+1012013,101201,1,101,2,1,pTitle0101201,What could be a risk that is associated with surgical procedure of bone graft?,osteoporosis,renal failure,rejection of transplants,none of the above,c
+1012014,101201,1,101,2,1,pTitle0101201,"Due to ethical concerns, all bone graft materials can only come from donors who have
+died (T/F)",TRUE,FALSE,"","",b
+1012015,101201,1,101,2,1,pTitle0101201,"A medical student is asked by his professor to explain how a bone graft works in a
+patient. What should the student say?",it provides a framework for growth of fresh and living bone,it dissolves into essential compounds like calcium and phosphate,it stimulates immune cells to engulf cancerous bone cells,it increases blood flow to the implanted area,a
+1012021,101202,1,101,2,2,pTitle0101202,"In the United States, over 900,000 autografts are harvested each year (T/F)",TRUE,FALSE,"","",a
+1012022,101202,1,101,2,2,pTitle0101202,"Bone tissue implant from a donor can benefit various types of patients, such as",athletes with knew fracture,cancer patients after surgery,patient with severe back pain,all of the above,d
+1012023,101202,1,101,2,2,pTitle0101202,"Allograft tissue at bone backs are processed in carefully controlled environments to
+prevent contamination or infection (T/F)",TRUE,FALSE,"","",a
+1012031,101203,1,101,2,3,pTitle0101203,"Both allograft and autograft involve using bone from human donors, and they both carry
+risk of chronic pain at the site of insertion (T/F)",TRUE,FALSE,"","",b
+1012032,101203,1,101,2,3,pTitle0101203,"After a biking accident, a professional athlete receives an autograft harvested from his
+hop bone. He is prescribed oxycodone during recovery. What is a potential side effects
+that he should be aware of?",chronic fever,chronic pain,transient paralysis,none of the above,b
+1012033,101203,1,101,2,3,pTitle0101203,Autograft bone harvesting reduces what risk compared to allografts?,immunologic rejection,failure to fuse,bone pain,all of the above,a
+1012041,101204,1,101,2,4,pTitle0101204,"Autograft and allograft require the same number of procedures on the patient, but
+allograft is less invasive (T/F)",TRUE,FALSE,"","",b
+1012042,101204,1,101,2,4,pTitle0101204,"A young female is being evaluated by a surgeon after she sustained a motor vehicle
+accident. The surgeon recommended harvesting autograft to reduce rejection risk. Why
+does autograft reduce the risk of rejection?",autografts go through a more thorough processing method,autografts only contain the patient’s own cells,autografts are autoclaved to eliminate microbes,there is no substantial difference in rejection risk,b
+1012043,101204,1,101,2,4,pTitle0101204,"Allograft can reduce the risk of infection, and it reduces the pain associated with bone
+harvesting (T/F)",TRUE,FALSE,"","",a
+1012051,101205,1,101,2,5,pTitle0101205,"An elderly female is being evaluated by a surgeon after she sustained a motor vehicle
+accident. Multiple fracture sites are found. Why might she not be a good candidate for
+autografts?",poor bone quality and density,limited amount of bone available for autograft,high financial expense,all of the above,d
+1012052,101205,1,101,2,5,pTitle0101205,What type of graft material is likely to grow faster in the host bone?,autograft,allograft,xenograft,synthetic material,a
+1012053,101205,1,101,2,5,pTitle0101205,"Although autograft may reduce the chance of disease transmission, it is less effective than
+allograft because bone growth cells and proteins are removed during processing (T/F)",TRUE,FALSE,"","",b
+1012061,101206,1,101,2,6,pTitle0101206,"There have been more cases of disease transmission from freeze-dried bone allograft
+compared to fresh-frozen bone allografts (T/F)",TRUE,FALSE,"","",b
+1012062,101206,1,101,2,6,pTitle0101206,"In order to reduce the chances of disease transmission, what guidelines are followed by
+most bone banks?",Red Cross,WHO,American Association of Tissue Banks,Federation of Bone Safety,c
+1012063,101206,1,101,2,6,pTitle0101206,"With proper adherence to safety guidelines, what are the chances of receiving a bone
+graft from an HIV-infected donor?",1月30日,1/167,1/1670000,unknown,c
+1012071,101207,1,101,2,7,pTitle0101207,"What are some common methods that are used in bone graft processing, which prevent
+contamination?",chemical treatment,sonication,irradiation,all of the above,d
+1012072,101207,1,101,2,7,pTitle0101207,"During the processes step of bone graft, what material properties can be potentially
+altered?",surface area,genetic sequence,conductivity,none of the above,a
+1012073,101207,1,101,2,7,pTitle0101207,"The process of decellularization is part of the guideline to remove material that might
+elicit an immune response (T/F)
+",TRUE,FALSE,"","",a
+1012081,101208,1,101,2,8,pTitle0101208,"The transfer of autograft is regulated by American Association of Tissue Banks (AATB)
+guidelines to provide the surgeon with safe bone tissue (T/F)",TRUE,FALSE,"","",a
+1012082,101208,1,101,2,8,pTitle0101208,"What is a property of the graft that bone banks aim to achieve through rigorous
+processing?",sterility,flexibility,regularity,all of the above,a
+1012083,101208,1,101,2,8,pTitle0101208,"What is something that bone banks agree to in order to be accredited as members of the
+AATB?",cost effectiveness,on-site inspection,high processing speed,low interest rate,b
+1012091,101209,1,101,2,9,pTitle0101209,"A bone bank receives a potential donor’s death after a motor vehicle collision. In order to
+determine donor eligibility, what available information should be obtained?",age,life style,medical condition,all of the above,d
+1012092,101209,1,101,2,9,pTitle0101209,"A recovery team is sent out to procure bone tissue from a deceased donor. Due to inclement
+weather conditions, the team arrived 15 hours after the donor’s death. Can the sample still
+be procured?","No, because the donor likely has an infectious disease","No, because of the time-sensitive nature of procurement","Yes, because the sample is preserved in cold weather",Cannot be determined,b
+1012093,101209,1,101,2,9,pTitle0101209,"A bone bank typically determines donor eligibility after sending out the procurement team
+(T/F)",TRUE,FALSE,"","",b
+1012101,101210,1,101,2,10,pTitle0101210,"Most bone donors are old people who died from natural causes or patients with incurable
+diseases (T/F)",TRUE,FALSE,"","",b
+1012102,101210,1,101,2,10,pTitle0101210,"With HIV transmission being a serious concern, how do bone banks determine if an
+allograft may cause disease transfer?",IV drug use,lymph node biopsy,chemical tests,all of the above,d
+1012103,101210,1,101,2,10,pTitle0101210,"Screening for bacterial and viral infections is based on getting a thorough history from
+patient’s medical record, as well as from friends and family (T/F)",TRUE,FALSE,"","",b
+1012111,101211,1,101,2,11,pTitle0101211,"Irradiation is a fail-proof method to remove all HIV contamination in bone-graft tissue.
+(T/F)",TRUE,FALSE,"","",b
+1012112,101211,1,101,2,11,pTitle0101211,What is a top concern that require bone banks to sterilize bone tissues?,ensure that graft tissue is completely devoid of liquid,maintain homeostatic temperature to maintain cell viability,remove HIV particles from tissue,none of the above,c
+1012113,101211,1,101,2,11,pTitle0101211,What is the most commonly used method to ensure allograft sterility?,alcohol wash,autoclaving,irradiation,iodine,c
+1013011,101301,1,101,3,1,pTitle0101301,"A medical supplier is interested in understanding the market size of bone graft material.
+What kind of population may be in the market?",an athlete with severe fractures,a retiree with significant bone loss,a patient suffering from cancer,all of the above,d
+1013012,101301,1,101,3,1,pTitle0101301,"A tissue banks is responsible for screening the medical histories of the donors and freeze
+the donated bones (T/F)",TRUE,FALSE,"","",a
+1013013,101301,1,101,3,1,pTitle0101301,What could be a risk that is associated with surgical procedure of bone graft?,osteoporosis,renal failure,rejection of transplants,none of the above,c
+1013014,101301,1,101,3,1,pTitle0101301,"Due to ethical concerns, all bone graft materials can only come from donors who have
+died (T/F)",TRUE,FALSE,"","",b
+1013015,101301,1,101,3,1,pTitle0101301,"A medical student is asked by his professor to explain how a bone graft works in a
+patient. What should the student say?",it provides a framework for growth of fresh and living bone,it dissolves into essential compounds like calcium and phosphate,it stimulates immune cells to engulf cancerous bone cells,it increases blood flow to the implanted area,a
+1021011,102101,1,102,1,1,pTitle0102101,"When a person agrees to blood donation, what is the blood used for?",Transfusions for someone needing blood,Separated into components to make blood products,Stored in a bag for future use,All of the above,d
+1021012,102101,1,102,1,1,pTitle0102101,The most common blood donation approach is to take blood from a capillary vessel (T/F),TRUE,FALSE,"","",b
+1021013,102101,1,102,1,1,pTitle0102101,What must be done to the skin over blood vessel before drawing blood,mark with a FDA approved marker,visually inspected for rashes,cleaned carefully,ultrasound examination for abnormalities,c
+1021014,102101,1,102,1,1,pTitle0102101,In which of the following types of container is donated blood commonly stored?,FDA-approved plastic bottles,flexible plastic bag,sterilized test tubes,All of the above,b
+1021015,102101,1,102,1,1,pTitle0102101,"The thinner the needle, the less physical damage is done to the red blood cells as they
+flow through the needle (T/F)The HI-LCO condition (High Information Low Conceptual
+Overlap)",TRUE,FALSE,"","",b
+1021021,102102,1,102,1,2,pTitle0102102,Why does a blood bank add anticoagulants to donated blood?,to kill bacteria in the blood,to preserve the red pigments called hemoglobin,to increase the oxygen carrying ability of the blood,none of the above,d
+1021022,102102,1,102,1,2,pTitle0102102,"People with Creutzfeldt-Jakob disease can still donate blood as long as the blood bank
+remove white blood cells from the blood (T/F)",TRUE,FALSE,"","",b
+1021023,102102,1,102,1,2,pTitle0102102,What are some common infectious agents screened at a blood bank?,HPV,Measles and Listeria,HIV,E. Coli,c
+1021031,102103,1,102,1,3,pTitle0102103,"In Northern India and central Asia, the frequency of which blood type is relatively high?",Rh positive Type O,Type AB,Type B,None of the above,c
+1021032,102103,1,102,1,3,pTitle0102103,"A patient with Type A blood is suffering blood loss from a vehicle accident. At the
+emergency hospital, the doctor accidentally administered Type B blood transfusion. What
+symptoms might the patient experience?",he will only experience volume loss,weakness and fatigue,nausea and vomiting,fever and chills,d
+1021033,102103,1,102,1,3,pTitle0102103,"Blood type is a classification of blood is based on the size and shape of red blood cells
+(T/F)",TRUE,FALSE,"","",b
+1021041,102104,1,102,1,4,pTitle0102104,"Donors with what kind of medical history would most likely experience adverse
+consequences to a transfusion?",chronic migraines,"disease of the blood vessels in the brain, heart failure",osteoporosis,psychosis and depression,b
+1021042,102104,1,102,1,4,pTitle0102104,"For patients who have undergone recent surgery, if a transfusion was given at the time of
+surgery, donation may be allowed after one year of recovery (T/F)",TRUE,FALSE,"","",a
+1021043,102104,1,102,1,4,pTitle0102104,Which donor below is more likely to feel dizziness and fainting following donation?,long-distance runner with BMI of 21,a young male with morbid obesity,a middle-aged vegan who weighs 108lb,no difference between these individuals,c
+1021051,102105,1,102,1,5,pTitle0102105,"In newborn jaundice, a baby has yellow skin and eyes due to a high level of what
+substance in the blood?",hemoglobin,bilirubin,amniotic fetal protein,none of the above,b
+1021052,102105,1,102,1,5,pTitle0102105,Which of the infant’s organ primarily process bilirubin to prevent its toxic effects?,brain,kidney,liver,lungs,c
+1021053,102105,1,102,1,5,pTitle0102105,"Transfusion can improve an infant’s yellow skin, but phototherapy is required if there’s
+jaundice with severe symptoms (T/F)",TRUE,FALSE,"","",b
+1021061,102106,1,102,1,6,pTitle0102106,What is the purpose of performing apheresis on whole blood?,detect cancer cells in the donor’s blood,remove harmful or infectious substances from the blood,enrich the blood with vital nutrients and minerals,b & c,b
+1021062,102106,1,102,1,6,pTitle0102106,"While very useful, apheresis is a time-intensive process that can take several days to
+complete (T/F)",TRUE,FALSE,"","",a
+1021063,102106,1,102,1,6,pTitle0102106,How many needles are required to perform apheresis?,1,2,3,4,b
+1021071,102107,1,102,1,7,pTitle0102107,"The Food and Drug Administration did not allow gay and bisexual men and people with
+recent tattoos and piercings to donate blood in the past. What event has triggered the lift
+of this ban?",the HIV epidemic,COVID pandemic,the Red Cross advocacy,2020 flu outbreak,b
+1021072,102107,1,102,1,7,pTitle0102107,"Red Cross is the organization that legislate policies on blood transfusions and donor
+eligibility (T/F)",TRUE,FALSE,"","",b
+1021073,102107,1,102,1,7,pTitle0102107,"From 2019 to 2020, many blood drives were canceled at workplaces, colleges and other
+locations (T/F)",TRUE,FALSE,"","",a
+1021081,102108,1,102,1,8,pTitle0102108,"After a work accident at a construction site, a 42-year-old man received 1000 cc of blood
+product. In 3 hours, he developed fever, chills and rash. A transfusion reaction is
+suspected. What is the safest next step of management?",stop the transfusion,administer antibiotics,intubate the man on 100% oxygen,IV fluid resuscitation,a
+1021082,102108,1,102,1,8,pTitle0102108,"A chronic transfusion reaction presents symptoms between 6 to 12 hours after a blood
+transfusion (T/F)",TRUE,FALSE,"","",b
+1021083,102108,1,102,1,8,pTitle0102108,"If a transfusion reaction is suspected, a freshly collected blood sample from the patient
+should be returned the blood bank for investigation (T/F)",TRUE,FALSE,"","",a
+1021091,102109,1,102,1,9,pTitle0102109,What populations are more likely to experience acute reaction from blood transfusion?,the elderly population,African Americans,obese patients,adolescents,a
+1021092,102109,1,102,1,9,pTitle0102109,"Young people generate more ABO antibodies; therefore, they are more likely to present
+with symptoms from transfusion reaction. (T/F)",TRUE,FALSE,"","",b
+1021093,102109,1,102,1,9,pTitle0102109,"Newborns are especially susceptible to transfusion reactions during their first few months
+of life due to immature blood cells (T/F)",TRUE,FALSE,"","",b
+1021101,102110,1,102,1,10,pTitle0102110,"A vegan patient has been feeling weak and short of breath for several months. The doctor
+suspects anemia due to lack of nutrients. What is a useful lab measure to determine the
+type of anemia?",mean corpuscular volume,mean corpuscular area,red blood cell count,all of the above,a
+1021102,102110,1,102,1,10,pTitle0102110,Clinical features of anemia include the following EXCEPT,fatigue,shortness of breath,high blood pressure,high heart rate,c
+1021103,102110,1,102,1,10,pTitle0102110,Some viral infections may cause aplastic anemia. What are some other potential causes?,certain medicines,iron deficiency,autoimmune diseases,toxic chemicals,"a,c,d"
+1021111,102111,1,102,1,11,pTitle0102111,All Jehovah’s Witnesses believe that it is against God’s will to receive blood (T/F),TRUE,FALSE,"","",b
+1021112,102111,1,102,1,11,pTitle0102111,"A child whose parents are Jehovah’s Witnesses, by default, cannot receive blood
+transfusions during emergencies and elective surgeries because of the risk of expulsion
+from by the church (T/F)",TRUE,FALSE,"","",a
+1021113,102111,1,102,1,11,pTitle0102111,"If a known Jehovah’s Witness adult patient has already refused to consent to a blood
+transfusion on record, what is the best course of action during an emergency?",respect the patient’s preference and withhold transfusions,consult the hospital ethics committee,ask the church authority for an exemption,give transfusion,a
+1022011,102201,1,102,2,1,pTitle0102201,"When a person agrees to blood donation, what is the blood used for?",Transfusions for someone needing blood,Separated into components to make blood products,Stored in a bag for future use,All of the above,d
+1022012,102201,1,102,2,1,pTitle0102201,The most common blood donation approach is to take blood from a capillary vessel (T/F),TRUE,FALSE,"","",b
+1022013,102201,1,102,2,1,pTitle0102201,What must be done to the skin over blood vessel before drawing blood,mark with a FDA approved marker,visually inspected for rashes,cleaned carefully,ultrasound examination for abnormalities,c
+1022014,102201,1,102,2,1,pTitle0102201,In which of the following types of container is donated blood commonly stored?,FDA-approved plastic bottles,flexible plastic bag,sterilized test tubes,All of the above,b
+1022015,102201,1,102,2,1,pTitle0102201,"The thinner the needle, the less physical damage is done to the red blood cells as they
+flow through the needle (T/F)The HI-LCO condition (High Information Low Conceptual
+Overlap)",TRUE,FALSE,"","",b
+1022021,102202,1,102,2,2,pTitle0102202,"Which of the following is one of the common components can be derived from donated
+blood?",antibody,plasma,red marrow,stem cells,b
+1022022,102202,1,102,2,2,pTitle0102202,"With the advent of modern techniques, any type of blood components can now be stored
+safely for at least dozens of years (T/F)",TRUE,FALSE,"","",b
+1022023,102202,1,102,2,2,pTitle0102202,"A college student wants to donate blood after reading the advertisement for a local blood
+drive. However, he is curious about the time it would take for collection to work with his
+busy schedule. How long should he plan for the process for whole blood donation?",30 minutes,1 hour,8 hours,1 day,b
+1022031,102203,1,102,2,3,pTitle0102203,What is the most frequently used blood component?,white blood cells,red blood cells,plasma,platelets,b
+1022032,102203,1,102,2,3,pTitle0102203,"During a double red cell donation at a blood drive, a college student asks why he is given
+saline solution at the same time. What does the saline solution prevent?",anemia causing weakness,low blood pressure causing light-headedness,high bilirubin causing jaundice,all of the above,b
+1022033,102203,1,102,2,3,pTitle0102203,"A double red cell donation, as the name suggest, is twice as fast as a normal whole blood
+donation (T/F)",TRUE,FALSE,"","",b
+1022041,102204,1,102,2,4,pTitle0102204,"An elderly patient is recently prescribed aspirin after abnormal labs. What is a potential
+effect of taking aspirin?",impaired clotting,decreased cholesterol,increased immune functions,none of the above,a
+1022042,102204,1,102,2,4,pTitle0102204,"It takes at least 4 platelet donations to provide enough platelets for a full treatment unit
+for a patient in need (T/F)",TRUE,FALSE,"","",b
+1022043,102204,1,102,2,4,pTitle0102204,"During platelet donation, since apheresis returns the red cells and most of the plasma
+back to the donor, donors can resume normal activities that day (T/F)",TRUE,FALSE,"","",a
+1022051,102205,1,102,2,5,pTitle0102205,"In addition to maintaining a healthy blood pressure, plasma also serves a variety of
+functions like carrying oxygen to tissues. (T/F)",TRUE,FALSE,"","",b
+1022052,102205,1,102,2,5,pTitle0102205,Which of the following blood types provide plasma that can be received by any adult?,O,A,AB,B,c
+1022053,102205,1,102,2,5,pTitle0102205,"A patient presents to the emergency room after bleeding for over an hour. The doctor
+administers a bolus of fresh frozen plasma. What is the main function of this bolus?",restore clotting components,increase immune function,increase blood pressure,none of the above,a
+1022061,102206,1,102,2,6,pTitle0102206,"A professional climber collects and stores 1000cc of his own blood a few days before
+ascending Mt. Everitt. When he receives he blood back to his body, what type of blood
+donation is administered?",analogous,autologous,monologous,xenologous,b
+1022062,102206,1,102,2,6,pTitle0102206,"Autologous blood donation is used more often as standard donation because of reduced
+risks. (T/F)",TRUE,FALSE,"","",b
+1022063,102206,1,102,2,6,pTitle0102206,"What type of supplement may a patient take after donating the blood to help the body
+replace the lost blood cells before surgery?",Vitamin B12,calcium,iron,zinc,c
+1022071,102207,1,102,2,7,pTitle0102207,"A biker suffers a fall when accelerating downhill, and he was sent to the emergency
+room. The doctor determines he needs immediate blood transfusion. What may increase
+his risk of acquiring graft-versus-host disease from blood transfusions?",history of diabetes,HIV causing immuno-compromised state,hepatitis,iron-deficiency anemia,b
+1022072,102207,1,102,2,7,pTitle0102207,What is the best timeframe to irradiate platelets before storage?,within 3 days,within 5 days,within 10 days,at any stage,d
+1022073,102207,1,102,2,7,pTitle0102207,"Besides irradiation, autologous donations can also prevent graft-versus-host disease.
+(T/F)",TRUE,FALSE,"","",a
+1022081,102208,1,102,2,8,pTitle0102208,"Which component of blood is often removed because it often plays no therapeutic role
+and may be a cause of adverse transfusion reactions?",albumin protein,white blood cells,ABO antigens,hemoglobin,b
+1022082,102208,1,102,2,8,pTitle0102208,"Leucodepletion provides the same protection as irradiation against graft-versus-host
+disease (T/F)",TRUE,FALSE,"","",b
+1022083,102208,1,102,2,8,pTitle0102208,What is used to remove leucocytes from blood components?,antibody-antigen interactions,microbeads,electrophoresis,special filters,d
+1022091,102209,1,102,2,9,pTitle0102209,"Frozen red cells prepared by adding protective agent can be stored for longer than liquid-
+preserved blood (T/F)",TRUE,FALSE,"","",a
+1022092,102209,1,102,2,9,pTitle0102209,"What is the rational to remove unwanted plasma proteins from blood, even though doing
+so may cause a loss of red cells?",prevent reactions and severe allergies,reduce risks of genetic mutations,decrease cancer spread,all of the above,a
+1022093,102209,1,102,2,9,pTitle0102209,Why does removing white cells prevent the spread of the virus CMV?,white cells activate CMV replication,CMV is found in cellular component,leucodepletion decreases protein content,none of the above,b
+1022101,102210,1,102,2,10,pTitle0102210,"Hemoglobin is essential for the oxygen-carrying capacity of blood. What type of cells in
+the blood contain the highest level of hemoglobin?",leukocyte,red blood cells,adipose cells,globincytes,b
+1022102,102210,1,102,2,10,pTitle0102210,"Hb-Based Oxygen Carriers has advantages over red blood cells because they can reach
+more tissues (T/F)",TRUE,FALSE,"","",a
+1022103,102210,1,102,2,10,pTitle0102210,"Red cell substitutes can increase blood-borne diseases because they provide vital
+nutrients for various microbes. (T/F)",TRUE,FALSE,"","",b
+1022111,102211,1,102,2,11,pTitle0102211,"Natural platelets are small pigmented blood cells that help the clotting process by sticking
+to the blood vessels (T/F)",TRUE,FALSE,"","",b
+1022112,102211,1,102,2,11,pTitle0102211,How are Infusible Platelet Membranes (IPMs) made?,genetically modified in special bacteria,synthesized from old platelet units,extracted from brown algae,3D printed,b
+1022113,102211,1,102,2,11,pTitle0102211,One of the limitations of Infusible Platelet Membranes is their limited storage. (T/F),TRUE,FALSE,"","",a
+1023011,102301,1,102,3,1,pTitle0102301,"When a person agrees to blood donation, what is the blood used for?",Transfusions for someone needing blood,Separated into components to make blood products,Stored in a bag for future use,All of the above,d
+1023012,102301,1,102,3,1,pTitle0102302,The most common blood donation approach is to take blood from a capillary vessel (T/F),TRUE,FALSE,"","",b
+1023013,102301,1,102,3,1,pTitle0102303,What must be done to the skin over blood vessel before drawing blood,mark with a FDA approved marker,visually inspected for rashes,cleaned carefully,ultrasound examination for abnormalities,c
+1023014,102301,1,102,3,1,pTitle0102304,In which of the following types of container is donated blood commonly stored?,FDA-approved plastic bottles,flexible plastic bag,sterilized test tubes,All of the above,b
+1023015,102301,1,102,3,1,pTitle0102305,"The thinner the needle, the less physical damage is done to the red blood cells as they
+flow through the needle (T/F)The HI-LCO condition (High Information Low Conceptual
+Overlap)",TRUE,FALSE,"","",b
+1031011,103101,1,103,1,1,pTitle0103101,"A medical student is reviewing various procedures before shadowing an ophthalmologist.
+One of the common procedures is a corneal transplant. What is this also known as?",corneactomy,keratogenesis,keratoplasty,lamellactomy,c
+1031012,103101,1,103,1,1,pTitle0103101,Which of the following layers can be found in the cornea,epithelium,stroma,endothelium,all of the above,d
+1031013,103101,1,103,1,1,pTitle0103101,What is the procedure that involves transplanting all the layers of the cornea?,penetrating cornea transplant,lamellar transplant,total stromal transplant,pseudo keratoplasty,a
+1031014,103101,1,103,1,1,pTitle0103101,"While penetrating transplants can restore vision and reduce pain, lamellar usually only
+improve the appearance of a damaged cornea (T/F)",TRUE,FALSE,"","",b
+1031015,103101,1,103,1,1,pTitle0103101,"Cornea donation is in ample supply for those who need them, therefore one can easily
+elect a surgical procedure (T/F)",TRUE,FALSE,"","",a
+1031021,103102,1,103,1,2,pTitle0103102,"What is the characteristic of a patient’s cornea, who is diagnosed with keratoconus?",cone-like bulge,round and clear,irregular and pointy,cloudy and dark,a
+1031022,103102,1,103,1,2,pTitle0103102,"A teenager is having trouble keeping up in class. When he visits his eye doctor for a new
+pair of glasses, a thorough exam shows that he has keratoconus. What are the symptoms
+of keratoconus?",blurring and distortion of vision,increased sensitivity to movement,eye dryness,inability to close the eyes,a
+1031023,103102,1,103,1,2,pTitle0103102,"Slit lamp, together with corneal topography, can be used to diagnose most cases of
+keratoconus (T/F)",TRUE,FALSE,"","",a
+1031031,103103,1,103,1,3,pTitle0103103,Which part of the eye is most affected in someone diagnosed with Fuchs' dystrophy?,iris,retinal ganglia,inner surface of cornea,outer layer of sclera,c
+1031032,103103,1,103,1,3,pTitle0103103,Which of the following population is more likely to be predisposed to Fuchs' dystrophy?,a teenager on the swim team,a young adult who wears glasses,a house wife whose mom has Fuch’s dystrophy,an elderly man who enjoys sun-bathing,c
+1031033,103103,1,103,1,3,pTitle0103103,"In Fuchs’ dystrophy, fluid may build up can cause the formation of small blisters (T/F)",TRUE,FALSE,"","",a
+1031041,103104,1,103,1,4,pTitle0103104,Which of the following statement is accurate in describing herpes simplex virus?,Type II herpes exposure is usually during childhood,Type I herpes is more common,Type I herpes more often effects the genitals,Type II herpes more often effects the face,b
+1031042,103104,1,103,1,4,pTitle0103104,Which of the following factors could reactivate latent herpes?,stress,trauma,certain medications,all of the above,d
+1031043,103104,1,103,1,4,pTitle0103104,Corneal transplant may be required only in severe cases of herpes keratitis (T/F),TRUE,FALSE,"","",a
+1031051,103105,1,103,1,5,pTitle0103105,"A 60-year-old man has experienced blurry vision for several years, and the doctor found
+he has developed cataracts. Before the cataract surgery, how does the doctor measure the
+curve of the cornea?",keratoplasty,keratometry,phacoemulsification,incision,b
+1031052,103105,1,103,1,5,pTitle0103105,"For patients with cataracts, their cloudy lens is often replaced with an artificial lens made
+of plastic, silicone, or acrylic (T/F)",TRUE,FALSE,"","",a
+1031053,103105,1,103,1,5,pTitle0103105,"Once a new, clear lens is inserted in a cataract procedure, light can freely pass through
+the lens again. What structure does the light focus on?",iris,retina,cornea,none of the above,b
+1031061,103106,1,103,1,6,pTitle0103106,"A new type of synthetic cornea was developed by scientists in Sweden, Canada and
+California. What is advantageous about this synthetic cornea compared to donor cornea?",it is not limited by shortage of donors,it prevents tissue rejection,it avoids the risk of infection,all of the above,d
+1031062,103106,1,103,1,6,pTitle0103106,"The same material that can be used to make synthetic cornea can also be found in tendons
+and ligaments in the human body (T/F)",TRUE,FALSE,"","",a
+1031063,103106,1,103,1,6,pTitle0103106,"Besides improving vision, what other features are found in the newly developed synthetic
+cornea?",respond to touch,kill AIDS virus,better visual focus,UV light filter,a
+1031071,103107,1,103,1,7,pTitle0103107,"There are many existing eyedrop products in the pharmacy. Based on recent studies, what
+can an eyedrop containing lipid DOPG potentially be used to treat?",fend off bacterial growth on the cornea,aids healing of scratches on the cornea from trauma,decrease near-sightedness,protect radiation from the sun and other UV lights,b
+1031072,103107,1,103,1,7,pTitle0103107,"The most common corneal injury is resulted from external trauma, such as include finger
+pokes or mascara wands (T/F)",TRUE,FALSE,"","",a
+1031073,103107,1,103,1,7,pTitle0103107,"An eye doctor is looking at corneal epithelial cells under the microscope. What is the
+tissue structure most similar to?",stacked brick wall,parallel columns,"thin, single-layered sheath",staggered rhombus,a
+1031081,103108,1,103,1,8,pTitle0103108,"Pharmaceutical companies often use animal testing for new ophthalmic drugs. When a
+drug is tested on rabbits, what is one difference vs. human eye to be considered?",blinking speed,extra corneal layers,cell type,none of the above,a
+1031082,103108,1,103,1,8,pTitle0103108,"The less fluid movement over corneal cells, the more flexible and elastic the corneal cells
+become due to filament production (T/F)",TRUE,FALSE,"","",b
+1031083,103108,1,103,1,8,pTitle0103108,"Emulating blinking eyelid and moving tears may improve ophthalmic drug development
+without the use of animal testing. (T/F)",TRUE,FALSE,"","",a
+1031091,103109,1,103,1,9,pTitle0103109,"Dry eye syndrome is usually an acute problem that resolves with artificial tears in a few
+days (T/F)",TRUE,FALSE,"","",b
+1031092,103109,1,103,1,9,pTitle0103109,"For some patients with dry eye, what additional element in eye drops may improve
+outcome?",pooled antibodies,surfactants,antibiotics,steroids,a
+1031093,103109,1,103,1,9,pTitle0103109,"Severe dry eye can lead to disabling eye pain and sensitivity to light in worse cases. What
+population is at greater risk for dry eye?",swimmers,residents in Chicago,the elderly,children,c
+1031101,103110,1,103,1,10,pTitle0103110,"To reduce the number of visits to the emergency departments due to keratitis, what can
+eye doctors educate their patients about?",sleep hygiene,digital screen time,contact lens hygiene,preventative vaccination,c
+1031102,103110,1,103,1,10,pTitle0103110,"The CDC recommends antibiotic-infused contact lenses to reduce the risk of infection
+and inflammation of the cornea (T/F)",TRUE,FALSE,"","",b
+1031103,103110,1,103,1,10,pTitle0103110,"A college student scheduled an appointment at the university student clinic during finals
+week. His chief complaint is eye pain. He has been studying and napping in the library
+non-stop. What should be assessed during the visit?",history of falling,contact lens usage,signs of inflammation,all of the above,d
+1031111,103111,1,103,1,11,pTitle0103111,"Man-made collagen and synthetic polymer can be used to make artificial cornea.
+Advances in 3D printing may create artificial cornea with new organic materials, such as",silicone,stem cells,leukocytes,adipose tissue,b
+1031112,103111,1,103,1,11,pTitle0103111,"In 3D printing with bioink, what is used to control the pattern of collagen fibrils?",shear stress,gravity,magnetic force,none of the above,a
+1031113,103111,1,103,1,11,pTitle0103111,"Compared to other alternatives, 3D-peinted cornea has the potential to achieve
+transparency and safety similar to native human cornea (T/F)",TRUE,FALSE,"","",a
+1032011,103201,1,103,2,1,pTitle0103201,"A medical student is reviewing various procedures before shadowing an ophthalmologist.
+One of the common procedures is a corneal transplant. What is this also known as?",corneactomy,keratogenesis,keratoplasty,lamellactomy,c
+1032012,103201,1,103,2,1,pTitle0103201,Which of the following layers can be found in the cornea,epithelium,stroma,endothelium,all of the above,d
+1032013,103201,1,103,2,1,pTitle0103201,What is the procedure that involves transplanting all the layers of the cornea?,penetrating cornea transplant,lamellar transplant,total stromal transplant,pseudo keratoplasty,a
+1032014,103201,1,103,2,1,pTitle0103201,"While penetrating transplants can restore vision and reduce pain, lamellar usually only
+improve the appearance of a damaged cornea (T/F)",TRUE,FALSE,"","",b
+1032015,103201,1,103,2,1,pTitle0103201,"Cornea donation is in ample supply for those who need them, therefore one can easily
+elect a surgical procedure (T/F)",TRUE,FALSE,"","",a
+1032021,103202,1,103,2,2,pTitle0103202,"While it is an intricate procedure, corneal transplant can typically be done in an out-
+patient setting within the same day (T/F)",TRUE,FALSE,"","",a
+1032022,103202,1,103,2,2,pTitle0103202,"In corneal transplant, how is the donor tissue usually secured in the patient’s eye?",sewn with suture,fine laser,natural adhesion,skin glue,a
+1032023,103202,1,103,2,2,pTitle0103202,"After a corneal procedure, the doctor tells the patient that it may take several months to a
+year for healing to take place. Why does corneal transplant heals relatively slowly
+compared to many other types of tissues?",unique cell morphology,vitamin deficiency,lack of blood supply,temperature variation,c
+1032031,103203,1,103,2,3,pTitle0103203,"Usually, a suture is only used in penetrating keratoplasty but not in lamellar keratoplasty
+because more layers are involved (T/F)",TRUE,FALSE,"","",b
+1032032,103203,1,103,2,3,pTitle0103203,"A 63-year-old patient has suffered from blurry vision for several years. Upon
+examination, the doctor told him that the innermost layer of his cornea is defective. What
+procedure is appropriate for him?",penetrating keratoplasty,endothelial keratoplasty,no treatment available,it will recover by itself,b
+1032033,103203,1,103,2,3,pTitle0103203,Why is an air bubble left in place under the cornea in a keratoplasty procedure?,to increase the focusing power,to restore eye pressure,to allow tissue healing,none of the above,c
+1032041,103204,1,103,2,4,pTitle0103204,Which of the following is not a function served by the epithelium of the cornea?,prevent foreign matter,absorb oxygen,produce tear,focusing light,c
+1032042,103204,1,103,2,4,pTitle0103204,"The epithelium is the outermost layer of the cornea consisting of a single cell layer that
+allow for diffusion nutrients (T/F)",TRUE,FALSE,"","",b
+1032043,103204,1,103,2,4,pTitle0103204,"Why is surgery not always required to replace the epithelial layer of the cornea if it is
+only slightly scratched?",it can regenerate,it is non-essential,it is frictionless,it can stretch easily,a
+1032051,103205,1,103,2,5,pTitle0103205,"The cornea consists of multiple layers of tissue with different thickness. What is the only
+layer that contain blood vessels?",endothelium,epithelium,stroma,none of the above,d
+1032052,103205,1,103,2,5,pTitle0103205,"The stroma has approximately 200 layers of collagen tissue, which gives the cornea its
+strength and elasticity. However, the stroma is mostly made up of water. (T/F)",TRUE,FALSE,"","",a
+1032053,103205,1,103,2,5,pTitle0103205,"Under the microscope, the stroma of the cornea can be seen as arranged collagen fibers
+along with sparsely distributed keratocytes. What is the function of these keratocytes?",heal slight damage,adhere the cell layers,sense pain,none of the above,a
+1032061,103206,1,103,2,6,pTitle0103206,"In an eye exam, a patient’s stroma is found to be swollen with fluid and hazy. A
+dysfunction of which corneal layer may have contributed to this fluid accumulation?",endothelium,epithelium,stroma,none of the above,a
+1032062,103206,1,103,2,6,pTitle0103206,"Due to its proximity to nutrient supply and basal stem cells, the endothelium of the
+cornea has the greatest regenerative ability (T/F)",TRUE,FALSE,"","",b
+1032063,103206,1,103,2,6,pTitle0103206,How does the endothelium maintain fluid balance in the cornea to maintain transparency?,osmosis,evaporation,pumping action,hydroxylation,c
+1032071,103207,1,103,2,7,pTitle0103207,"When possible, why is endothelial keratoplasty performed compared to a penetrating
+keratoplasty?",faster recovery,fewer complications,structural integrity,all of the above,d
+1032072,103207,1,103,2,7,pTitle0103207,Where is the Descemet's membrane found in the human eye?,outside the stroma,inside the endothelium,inside the retina,within the iris,a
+1032073,103207,1,103,2,7,pTitle0103207,"One of the key requirements for endothelium donors is a good cell counts, typically at
+least 2300 cells/mm2 (T/F)",TRUE,FALSE,"","",a
+1032081,103208,1,103,2,8,pTitle0103208,"A legally blind patient requires a Descemet's Stripping endothelium keratoplasty
+(DSEK). He is placed in the waitlist of a local eye bank. Where do endothelial cell in eye
+banks usually come from?",3D-printed bioink,stem cells,healthy young donors,bovine tissue,c
+1032082,103208,1,103,2,8,pTitle0103208,"In DSEK, where is a thin disc containing healthy endothelium cells inserted?",anterior chamber,posterior chamber,vitreous chamber,none of the above,a
+1032083,103208,1,103,2,8,pTitle0103208,"The minimal incision to insert healthy cells into the cornea, in a DSEK procedure, is
+9mm. (T/F)",TRUE,FALSE,"","",b
+1032091,103209,1,103,2,9,pTitle0103209,Why do surgeons tend to harvest DMEK tissue from eyes above 50 years of age only?,Descemet's membrane has better cell count in older donors,Descemet's membrane is too firmly attached in younger donors,Descemet's membrane from younger donors causes tissue rejection,Descemet's membrane is thicker in older donors,b
+1032092,103209,1,103,2,9,pTitle0103209,"Compared to DSEK, what is a greater risk of performing DMEK?",primary graft failure,farsightedness,cataracts,all of the above,a
+1032093,103209,1,103,2,9,pTitle0103209,DSEK has better visual outcomes in terms of contrast visual acuity than DMEK (T/F),TRUE,FALSE,"","",b
+1032101,103210,1,103,2,10,pTitle0103210,"What is the name of a thin layer between the stroma and descemet's membrane, newly
+discovered in 2013?",post-descemet's layer,Dua’s layer,peri-descemet's layer,Dek’s layer,b
+1032102,103210,1,103,2,10,pTitle0103210,"There is not a strict limitation to donor age when harvesting tissue for Pre-Descemet’s
+endothelial keratoplasty (PDEK) (T/F)",TRUE,FALSE,"","",a
+1032103,103210,1,103,2,10,pTitle0103210,"PDEK is a newer procedure with lower cell loss during donor tissue preparation than
+DMEK (T/F)",TRUE,FALSE,"","",a
+1032111,103211,1,103,2,11,pTitle0103211,"Which of the following is not an advantage of lamellar keratoplasty compared to
+penetrating keratoplasty?",primary graft failure,stronger eye structure,faster recovery,easier procedure,d
+1032112,103211,1,103,2,11,pTitle0103211,"Lamellar keratoplasty has seen much evolution over time. Which of the following
+procedure is the newest development?",DSEK,DMEK,PDEK,PLEK,c
+1032113,103211,1,103,2,11,pTitle0103211,Lamellar keratoplasty has reduced to need for sutures in the healing process (T/F),TRUE,FALSE,"","",a
+1033011,103301,1,103,3,1,pTitle0103301,"A medical student is reviewing various procedures before shadowing an ophthalmologist.
+One of the common procedures is a corneal transplant. What is this also known as?",corneactomy,keratogenesis,keratoplasty,lamellactomy,c
+1033012,103301,1,103,3,1,pTitle0103302,Which of the following layers can be found in the cornea,epithelium,stroma,endothelium,all of the above,d
+1033013,103301,1,103,3,1,pTitle0103303,What is the procedure that involves transplanting all the layers of the cornea?,penetrating cornea transplant,lamellar transplant,total stromal transplant,pseudo keratoplasty,a
+1033014,103301,1,103,3,1,pTitle0103304,"While penetrating transplants can restore vision and reduce pain, lamellar usually only
+improve the appearance of a damaged cornea (T/F)",TRUE,FALSE,"","",b
+1033015,103301,1,103,3,1,pTitle0103305,"Cornea donation is in ample supply for those who need them, therefore one can easily
+elect a surgical procedure (T/F)",TRUE,FALSE,"","",a
+1041011,104101,1,104,1,1,pTitle0104101,"A secondary liver cancer may start from the stomach or colon, but not the liver itself
+(T/F)",TRUE,FALSE,"","",b
+1041012,104101,1,104,1,1,pTitle0104101,Which of the following treatment can guarantee complete eradication of cancer cells?,immunotherapy,radiation,chemotherapy,none of the above,d
+1041013,104101,1,104,1,1,pTitle0104101,"In a patient with liver cancer, what organ function may be impared?",ability to break down nutrients,ability to store water,ability to maintain blood pressure,all of the above,a
+1041014,104101,1,104,1,1,pTitle0104101,"Besides tumor biopsy, there may also be specific markers in the bloodstream that help
+doctors diagnose liver cancer (T/F)",TRUE,FALSE,"","",a
+1041015,104101,1,104,1,1,pTitle0104101,What is the characteristic of a resectable liver cancer?,early stage,only affect lymph nodes,only spread to blood vessels,when the patient is young,a
+1041021,104102,1,104,1,2,pTitle0104102,Which of the following correctly describes the location of the liver?,above the diaphragm,under the right ribs,left of the stomach,variable based on the individual,b
+1041022,104102,1,104,1,2,pTitle0104102,"The hepatic artery supplies the majority of the blood and oxygen to the liver, along with
+the portal vein (T/F)",TRUE,FALSE,"","",b
+1041023,104102,1,104,1,2,pTitle0104102,"The liver produces many of the essential substances to sustain life, except for:",bile,clotting factors,metabolized nutrients,myoglobin,d
+1041031,104103,1,104,1,3,pTitle0104103,"A patient with alcohol addiction is told that he has developed cirrhosis. Cirrhosis is a
+condition caused by chronic damage to the liver. What other risk factors can potentially
+cause this disease?",high blood sugar,viral infection,dehydration,sleep deprivation,b
+1041032,104103,1,104,1,3,pTitle0104103,"The Child-Pugh score measures liver function in people with cirrhosis. Which of the
+following is not a factor being measured?",bilirubin,albumin,serotonin,prothrombin time,c
+1041033,104103,1,104,1,3,pTitle0104103,"Based on the Child-Pugh scoring system, class C is most likely to demonstrate symptoms
+such as brain dysfunction and abdominal fluid accumulation. (T/F)",TRUE,FALSE,"","",a
+1041041,104104,1,104,1,4,pTitle0104104,"HBV or HCV chronic infection is a significant risk factor for liver cancer. These viruses
+can be prevented by what practices?",condoms use,food hygiene,face masks,all of the above,a
+1041042,104104,1,104,1,4,pTitle0104104,"Based on guideline from the Centers for Disease Control and Prevention (CDC), which
+hepatitis vaccine is recommended for all children?",HAV,HBV,HCV,HDV,b
+1041043,104104,1,104,1,4,pTitle0104104,"Blood transfusions remains one of the greatest risk factors for liver cancer due to the
+transmission of HBV. (T/F)
+",TRUE,FALSE,"","",b
+1041051,104105,1,104,1,5,pTitle0104105,What demographic is most susceptible to develop benign tumor in the liver?,elderly male,elderly female,young male,young female,d
+1041052,104105,1,104,1,5,pTitle0104105,"There are many types of abnormal growths in the liver that may not be malignant in
+nature. Which of the following is not a benign tumor?",hemangioma,hemangiosarcoma,adenoma,none of the above,b
+1041053,104105,1,104,1,5,pTitle0104105,"Women on birth control pills have a higher likelihood of developing hepatic adenoma
+(T/F)",TRUE,FALSE,"","",a
+1041061,104106,1,104,1,6,pTitle0104106,"Eating which of the following foods have been linked to decreased risks of developing
+hepatocellular carcinoma?",collagen fiber,cereal fiber,fruit fiber,vegetable fiber,b
+1041062,104106,1,104,1,6,pTitle0104106,"Whole grain fiber definitely causes a lower risk of liver cancer by protecting hepatocytes
+from inflammation (T/F)",TRUE,FALSE,"","",b
+1041063,104106,1,104,1,6,pTitle0104106,"The American Cancer Society recommends adding whole grains to diets. What are good
+sources of whole grain?",quinoa,bulgur,popcorn,all of the above,d
+1041071,104107,1,104,1,7,pTitle0104107,"TP53 is often called a gatekeeper gene and is involved in many types of cancers. What
+happens to a cell if the TP53 is highly activated?",cell division is suppressed,cell division gets out of control,cell grows at a higher rate,cancer cells are killed,a
+1041072,104107,1,104,1,7,pTitle0104107,"Aflatoxin can be found in certain type of fungus that spreads through spored. How does
+aflatoxin play a role in liver cancer?",damage TP53 gene,activate TP53 gene,increase nutrient channels,destabilize cell membrane,a
+1041073,104107,1,104,1,7,pTitle0104107,"Viruses may cause certain cancers. One way is by inserting its genes into a liver cell's
+DNA, where it may turn on the cell's oncogenes (T/F)",TRUE,FALSE,"","",a
+1041081,104108,1,104,1,8,pTitle0104108,Which of the following demographic has the highest increase in death from liver cancer?,men with college degree,men without college degree,women with college degree,women without college degree,b
+1041082,104108,1,104,1,8,pTitle0104108,"What are some actionable targets that the government can invests in to decrease death
+rate associated with liver cancer?",reduce obesity,reduce type 2 diabetes,improve hepatitis C testing,all of the above,d
+1041083,104108,1,104,1,8,pTitle0104108,"Study has shown that the risk of dying from liver cancer quadruples for those without a
+college degree compared to those with one (T/F)",TRUE,FALSE,"","",b
+1041091,104109,1,104,1,9,pTitle0104109,"A man recently noticed fullness in his right upper abdomen. He proceeds to visit the
+doctor and was subsequently diagnosed with liver cancer. What other symptoms is he
+likely experiencing?",hair loss,racing heart beat,increased appetite,breast enlargement,d
+1041092,104109,1,104,1,9,pTitle0104109,"Why might the detection of liver cancer be detected later than some of the other types of
+cancer?",liver cancer tends to resolve by itself,signs and symptoms appear at later stage,"liver cancer tends to affect healthy, young adults",all of the above,b
+1041093,104109,1,104,1,9,pTitle0104109,"Liver cancer can cause constipation indirectly by producing hormone that increases
+calcium level (T/F)",TRUE,FALSE,"","",a
+1041101,104110,1,104,1,10,pTitle0104110,"A rise in alpha-fetoprotein (AFP) in a patient can indicate a possibility of liver cancer, but
+it is not the definitive indicator. What other causes could increase AFP??",diabetes,down syndrome,pregnancy,none of the above,c
+1041102,104110,1,104,1,10,pTitle0104110,"After extensive treatment, a rise in AFP in a patient who was diagnosed with liver cancer
+can mean that the cancer is recurring (T/F)",TRUE,FALSE,"","",a
+1041103,104110,1,104,1,10,pTitle0104110,"Besides AFP, what other biological markers can be used to detect liver cancer?",liver function test,complete blood count,clotting test,all of the above,d
+1041111,104111,1,104,1,11,pTitle0104111, Second cancer is also called recurring cancer. The two often share the same cause (T/F),TRUE,FALSE,"","",b
+1041112,104111,1,104,1,11,pTitle0104111,"People who has a history of liver cancer may have an increased risk of developing what
+other types of cancer?",brain cancer,breast cancer,kidney cancer,lung cancer,c
+1041113,104111,1,104,1,11,pTitle0104111,"According to the American Cancer Society, what types of cancer can be screened?",colorectal,bone,skin,ovarian,a
+1042011,104201,1,104,2,1,pTitle0104201,"A secondary liver cancer may start from the stomach or colon, but not the liver itself
+(T/F)",TRUE,FALSE,"","",b
+1042012,104201,1,104,2,1,pTitle0104201,Which of the following treatment can guarantee complete eradication of cancer cells?,immunotherapy,radiation,chemotherapy,none of the above,d
+1042013,104201,1,104,2,1,pTitle0104201,"In a patient with liver cancer, what organ function may be impared?",ability to break down nutrients,ability to store water,ability to maintain blood pressure,all of the above,a
+1042014,104201,1,104,2,1,pTitle0104201,"Besides tumor biopsy, there may also be specific markers in the bloodstream that help
+doctors diagnose liver cancer (T/F)",TRUE,FALSE,"","",a
+1042015,104201,1,104,2,1,pTitle0104201,What is the characteristic of a resectable liver cancer?,early stage,only affect lymph nodes,only spread to blood vessels,when the patient is young,a
+1042021,104202,1,104,2,2,pTitle0104202,"Liver cancer can be respectable or unresectable. Unresectable cancers means that cancer
+that have already spread to lymph nodes or distant sites. (T/F)",TRUE,FALSE,"","",b
+1042022,104202,1,104,2,2,pTitle0104202,"While the waitlist for liver transplant may be long, who could be good candidates for a
+liver transplant?",a patient with extensive liver cirrhosis,a patient with most alcohol consumption,a patient of higher economic status,all of the above,a
+1042023,104202,1,104,2,2,pTitle0104202,What could be considered as a treatment for patients who cannot tolerate drug therapy?,chemotherapy,ablation,gene therapy,anti-virals,b
+1042031,104203,1,104,2,3,pTitle0104203,"Partial hepatectomy can be considered for people with good liver function. It may not
+benefit those who are too sick for surgery and who have multiple tumors (T/F)",TRUE,FALSE,"","",a
+1042032,104203,1,104,2,3,pTitle0104203,What is an initial test to determine if a liver cancer can be removed surgically?,complete blood count,laparoscopic exploration,imaging,palpation,c
+1042033,104203,1,104,2,3,pTitle0104203,What is a potential benefit of performing liver transplant compared to liver resection?,reduced risk of second cancer,reduced risk of infection,increased liver enzymes,increased clotting factors,a
+1042041,104204,1,104,2,4,pTitle0104204,"Compared to liver resection, ablation is treatment that destroys liver tumors without
+removing them. What kinds of tumor can be good candidates?",isolated from blood vessels,less than 3cm,easily accessible,all of the above,d
+1042042,104204,1,104,2,4,pTitle0104204,General anesthesia is not required for ablation because it is done without surgery. (T/F),TRUE,FALSE,"","",b
+1042043,104204,1,104,2,4,pTitle0104204,What imaging is commonly used to help guide ablation procedures?,ultrasound,MRI,plain X-ray,OCT,a
+1042051,104205,1,104,2,5,pTitle0104205," Embolization can be used to target liver tumor supplied by the hepatic artery, while sparing
+the rest of the liver that gets oxygen from the portal vein (T/F)",TRUE,FALSE,"","",a
+1042052,104205,1,104,2,5,pTitle0104205,"Why is embolization used to remove certain tumors, as opposed to ablation?",patient preference,less side effects,large tumor size,less pain,c
+1042053,104205,1,104,2,5,pTitle0104205,"Before receiving embolization for his stage 2 tumor, a patient is informed by the doctor
+regarding potential side effects. What are some potential side effects?",abdominal pain,infection in the liver,blood clots,all of the above,d
+1042061,104206,1,104,2,6,pTitle0104206,"Large liver tumors can sometimes be treated with embolization. In this procedure, what is
+inserted into an artery in the inner thigh through a small cut?",a needle,a catheter,a radiator,a thermometer,b
+1042062,104206,1,104,2,6,pTitle0104206,"Besides blocking the blood supply to the liver cancer, embolization can also be used in
+conjunction with what other techniques?",cryotherapy,chemotherapy,immunotherapy,ablation,b
+1042063,104206,1,104,2,6,pTitle0104206,"Due to the high risk of radioactive toxicity, patients receiving embolization should be
+receiving radiation therapy (T/F)",TRUE,FALSE,"","",b
+1042071,104207,1,104,2,7,pTitle0104207,"In external beam radiation therapy, small particles with radioactivity is applied to the skin
+and absorbed by the blood stream (T/F)",TRUE,FALSE,"","",b
+1042072,104207,1,104,2,7,pTitle0104207," Despite effecting only local tumors, radiation therapy can carry the risks of diarrhea,
+fatigue, and loss of appetite. Patients often lose weight during treatment (T/F)",TRUE,FALSE,"","",a
+1042073,104207,1,104,2,7,pTitle0104207,"Which technique allow radioactive substances to enter into the hepatic artery, thereby
+killing liver cancer?",ablation,embolization,chemotherapy,none of the above,b
+1042081,104208,1,104,2,8,pTitle0104208,"As an aggressive treatment. chemo drugs tend to have the best long-term patient outcome
+because it completely eradicates systemic cancer cells, (T/F)",TRUE,FALSE,"","",b
+1042082,104208,1,104,2,8,pTitle0104208,"Permanent cells that divide slowly, such as nerve cells, are especially prone to be damaged
+by chemo drugs, causing significant pain symptoms during therapy (T/F)",TRUE,FALSE,"","",b
+1042083,104208,1,104,2,8,pTitle0104208,"A late-stage liver cancer patient has been receiving chemo therapy for 4 weeks. He has
+lost most of his hair and exhibited many other common side effects. Which of the
+following is not a common side effect from chemotherapy?",diarrhea,loss of appetite,nausea,wheezing,d
+1042091,104209,1,104,2,9,pTitle0104209,"Different chemotherapy drugs may have different routs of administration, such as",oral,IV,infusion,all of the above,d
+1042092,104209,1,104,2,9,pTitle0104209,"Due to the localized effect of hepatic artery infusion, patients are spared from common
+side effects such as nausea and vomiting (T/F)",TRUE,FALSE,"","",b
+1042093,104209,1,104,2,9,pTitle0104209,"A patient with liver cancer asks about the duration of his chemo treatment, and learns that
+he will have several weeks of drugless period in between treatments. Why is rest period
+programmed into cycles of chemotherapy?",for the drug to exert its effect,for patient to recover from drug effects,for the doctor to take a break,none of the above,b
+1042101,104210,1,104,2,10,pTitle0104210," Increased kinase activity can inhibit cancer growth because kinases stop the cell cycle
+(T/F)",TRUE,FALSE,"","",b
+1042102,104210,1,104,2,10,pTitle0104210,"Targeted drugs have different functions from chemotherapy drugs and often have different
+side effects. What is a mechanism used by target therapy to prevent cancer growth?",stimulate macrophages,increase ATP synthesis,decrease blood vessels growth,promote healthy cell growth,c
+1042103,104210,1,104,2,10,pTitle0104210,What category of cancer drug does man-made antibodies fall into?,chemotherapy,target therapy,antimicrobial therapy,none of the above,b
+1042111,104211,1,104,2,11,pTitle0104211,"Patient should not receive additional chemotherapy after their treatment is over because of
+the significant toxic side effects that come with it (T/F)",TRUE,FALSE,"","",b
+1042112,104211,1,104,2,11,pTitle0104211,"A man just went through 2 months of intense chemotherapy, and he has been free of liver
+cancer biomarkers for several weeks. However, he is recommended to schedule regular
+follow-ups. What is the purpose for these follow-ups?",check for cancer recurrence,screen for spread to distant sites,assess need for additional treatments,all of the above,d
+1042113,104211,1,104,2,11,pTitle0104211,"What diagnostic modality may the doctor use to check for cancer recurrence after treatment
+is completed?",stool sample,biopsy,regular imaging and blood tests,none of the above,c
+1043011,104301,1,104,3,1,pTitle0104301,"A secondary liver cancer may start from the stomach or colon, but not the liver itself
+(T/F)",TRUE,FALSE,"","",b
+1043012,104301,1,104,3,1,pTitle0104302,Which of the following treatment can guarantee complete eradication of cancer cells?,immunotherapy,radiation,chemotherapy,none of the above,d
+1043013,104301,1,104,3,1,pTitle0104303,"In a patient with liver cancer, what organ function may be impared?",ability to break down nutrients,ability to store water,ability to maintain blood pressure,all of the above,a
+1043014,104301,1,104,3,1,pTitle0104304,"Besides tumor biopsy, there may also be specific markers in the bloodstream that help
+doctors diagnose liver cancer (T/F)",TRUE,FALSE,"","",a
+1043015,104301,1,104,3,1,pTitle0104305,What is the characteristic of a resectable liver cancer?,early stage,only affect lymph nodes,only spread to blood vessels,when the patient is young,a
+1051011,105101,1,105,1,1,pTitle0105101,"The small intestine contains many layers, and it is made up of both the colon and rectum
+(T/F)",TRUE,FALSE,"","",b
+1051012,105101,1,105,1,1,pTitle0105101,"A patient is diagnosed with colorectal cancer. In the clinic, he appears pale and tired. Lab
+results show low blood count. How can colorectal cancer cause low red blood sells over
+time if it is not treated?",it prevents cell formation in the bone marrow,cancer cells produce toxins that destructs blood cells,bleeding through the digestive tack,none of the above,c
+1051013,105101,1,105,1,1,pTitle0105101,"Screening for colorectal cancer has the potential to save lives. What is an effective
+screening method?",ultrasound,metabolic panel,colonoscopy,all of the above,c
+1051014,105101,1,105,1,1,pTitle0105101,"Colorectal cancer can progress to different stages. What does the stage of a tumor depend
+on?",depth of infiltration,cell architecture,genetic mutation,blood count,a
+1051015,105101,1,105,1,1,pTitle0105101,"if colorectal cancer has spread to multiple body organs, a systemic therapy is more suited
+for treatment (T/F)",TRUE,FALSE,"","",a
+1051021,105102,1,105,1,2,pTitle0105102,"While cancers can originate from different sites in the body, what is a characteristic they
+share in common?",the speed of progression,the type of mutation,finding of abnormal cells,the prognosis of the disease,c
+1051022,105102,1,105,1,2,pTitle0105102,"A biology student is given several images of biopsy samples from a deceased patient.
+What kind of image could reveal that the patient died from cancer?",high growth without order,"small, dark staining nucleus",lack of mitochondria,cell swelling and loss of membrane,a
+1051023,105102,1,105,1,2,pTitle0105102,"Chemotherapy and surgery are often used together to treat cancer, with greater effect than
+used alone (T/F)",TRUE,FALSE,"","",a
+1051031,105103,1,105,1,3,pTitle0105103," Most polyp types can be identified by the gastroenterologist by visual inspection without
+microscope to determine if they are cancerous (T/F)",TRUE,FALSE,"","",b
+1051032,105103,1,105,1,3,pTitle0105103,"A 50-year-old man underwent his first colonoscopy, from which a 1-cm polyp is found
+and dissected. What type of tumor could indicate potential pre-cancerous condition?",adenomatous,hyperplastic,hypoplastic,caseous,a
+1051033,105103,1,105,1,3,pTitle0105103,"A physician identifies a polyp in a patient, but he cannot tell the grading of the tumor.
+What should he do next?",leave it to avoid unnecessary harm,remove it and determine grading,follow up with ultrasound in 2 months,none of the above,b
+1051041,105104,1,105,1,4,pTitle0105104," Staging describes the process of determining if the underlying cells of a tumor grow in an
+orderly structure or not (T/F)",TRUE,FALSE,"","",b
+1051042,105104,1,105,1,4,pTitle0105104,"The TNM system is central to staging various types of cancer. Which pairing below match
+what it stands for correctly?",T: tumor shape | N: nodularity | M: morphology,T: tumor size | N: lymph node involvement | M: morphology,T: tumor size | N: nodularity | M: metastasis,T: tumor size | N: lymph node involvement | M: metastasis,d
+1051043,105104,1,105,1,4,pTitle0105104,"Out of the TNM system, Tumor size is the most indicative factor to determine worst
+prognostic outcome of the cancer (T/F)",TRUE,FALSE,"","",b
+1051051,105105,1,105,1,5,pTitle0105105," Colonoscopy is a procedure that identifies suspicious polyps and remove a segment of the
+colon or rectum (T/F)",TRUE,FALSE,"","",b
+1051052,105105,1,105,1,5,pTitle0105105,"What condition should the colon be in as the patient gets ready for surgery or
+colonoscopy?",sterilized,empty,embolized,all of the above,b
+1051053,105105,1,105,1,5,pTitle0105105,"A surgeon recommends total colectomy to a patient with stage 3 colorectal cancer. What
+does this procedure entail?",removal of the proximal colon alone,embolization of the mesenteric arteries,visual inspection of the rectum,none of the above,d
+1051061,105106,1,105,1,6,pTitle0105106,"Both systemic and regional chemotherapy approaches entail infusing drugs into the blood
+(T/F)",TRUE,FALSE,"","",b
+1051062,105106,1,105,1,6,pTitle0105106,"An oncologist recommends a patient with early-stage cancer to receive regional
+chemotherapy after his surgery. How does regional chemotherapy decrease drug toxicity?",prevent drug interactions,lower the concentration of the drug dose,reduce drug reaching the rest of the body,none of the above,c
+1051063,105106,1,105,1,6,pTitle0105106,"Chemotherapy drugs attack cells that are dividing quickly, which causes common side
+effects such as:",hair discoloration,mouth sores,neuropathic pain,myopia,b
+1051071,105107,1,105,1,7,pTitle0105107,"Lynch syndrome is a common hereditary colorectal cancer syndrome with a genetic defect
+in which gene?",FOXP3,MSH2,AK47,P52,b
+1051072,105107,1,105,1,7,pTitle0105107,"Patients with hereditary Lynch syndrome tend to develop when people reach advanced age
+because of weakened cell regulation (T/F)",TRUE,FALSE,"","",b
+1051073,105107,1,105,1,7,pTitle0105107,"Besides colorectal cancer, what other organs may be effected by Lynch syndrome?",brain,ovaries,lungs,bone,b
+1051081,105108,1,105,1,8,pTitle0105108,"The colon is a muscular tube about 5 feet long, made up of several compartments. Which
+of the following is not a component of the colon?",ascending,transverse,deltoid,sigmoid,c
+1051082,105108,1,105,1,8,pTitle0105108,What does the proximal colon consist of?,ascending and descending sections,sigmoid and transverse sections,ascending and transverse sections,ascending and circumflex sections,c
+1051083,105108,1,105,1,8,pTitle0105108," The colon mostly excretes excessive water and salt into the partially processed food matter
+to create the soft fecal texture (T/F)",TRUE,FALSE,"","",b
+1051091,105109,1,105,1,9,pTitle0105109,"Although everyone could get colorectal cancer, it happens at different rates across racial
+and ethnic groups. What are some underlying factors?",smoking,obesity,care access,all of the above,d
+1051092,105109,1,105,1,9,pTitle0105109,"Which of the following demographic groups have the highest colorectal cancer risks in
+the world?",Africans,Ashkenazi Jews,Hispanics,Alaska Natives,b
+1051093,105109,1,105,1,9,pTitle0105109,"Although colorectal cancer rates are higher in blacks than non-Hispanic whites, death
+rates are lower in blacks due to genetic protection (T/F)",TRUE,FALSE,"","",b
+1051101,105110,1,105,1,10,pTitle0105110,"Men with genetic mutation in SMAD7 are found to have a higher risk of colorectal
+cancer, when they measure a higher BMI (T/F)",TRUE,FALSE,"","",b
+1051102,105110,1,105,1,10,pTitle0105110,"Which gender sees in higher increase in risk of getting colorectal cancer due to increase
+in BMI?",men,women,transgender,unknown,b
+1051103,105110,1,105,1,10,pTitle0105110,"What does obesity act like for women with a high-risk genetic makeup for colorectal
+cancer?",a second hit,a protective factor,a mutagen,none of the above,a
+1051111,105111,1,105,1,11,pTitle0105111,"All previous studies have conclusively shown that higher vitamin D in the blood
+decreases the risk for colorectal cancer (T/F)",TRUE,FALSE,"","",b
+1051112,105111,1,105,1,11,pTitle0105111,"Based on the current study, what is the risks for colorectal cancer associated with vitamin
+D deficiency compared to normal levels?",double,half,a third higher,a quarter higher,c
+1051113,105111,1,105,1,11,pTitle0105111,"A patient is told that he has vitamin D deficiency in his health maintenance visit. He asks
+how he can replenish his levels. What are some sources of vitamin D?",exercise,sleep,forest,sun,d
+1052011,105201,1,105,2,1,pTitle0105201,"The small intestine contains many layers, and it is made up of both the colon and rectum
+(T/F)",TRUE,FALSE,"","",b
+1052012,105201,1,105,2,1,pTitle0105201,"A patient is diagnosed with colorectal cancer. In the clinic, he appears pale and tired. Lab
+results show low blood count. How can colorectal cancer cause low red blood sells over
+time if it is not treated?",it prevents cell formation in the bone marrow,cancer cells produce toxins that destructs blood cells,bleeding through the digestive tack,none of the above,c
+1052013,105201,1,105,2,1,pTitle0105201,"Screening for colorectal cancer has the potential to save lives. What is an effective
+screening method?",ultrasound,metabolic panel,colonoscopy,all of the above,c
+1052014,105201,1,105,2,1,pTitle0105201,"Colorectal cancer can progress to different stages. What does the stage of a tumor depend
+on?",depth of infiltration,cell architecture,genetic mutation,blood count,a
+1052015,105201,1,105,2,1,pTitle0105201,"if colorectal cancer has spread to multiple body organs, a systemic therapy is more suited
+for treatment (T/F)",TRUE,FALSE,"","",a
+1052021,105202,1,105,2,2,pTitle0105202,Why has the death rate from colorectal cancer been decreasing in the US?,healthier foods,early and regular screening,decreased smoking,increased hydration,b
+1052022,105202,1,105,2,2,pTitle0105202,"Screening allows doctors to catch colorectal cancer early in the form of polyps. What is a
+typical time frame it takes for a poly to become cancerous?",1-5 years,5-10 years,10-15 years,15-20 years,c
+1052023,105202,1,105,2,2,pTitle0105202,"Most Americans who fit the criteria to get tested for colorectal cancer already receives
+regular screening (T/F)",TRUE,FALSE,"","",b
+1052031,105203,1,105,2,3,pTitle0105203,"Every country has a different guideline regarding colorectal cancer screening. What is the
+recommended age put forth by the American Cancer Society?",40,45,50,55,b
+1052032,105203,1,105,2,3,pTitle0105203,"Earlier screening is recommended for people at higher risk of colorectal cancer. Which of
+the following constitutes higher risk?",inflammatory bowel disease,sedentary lifestyle,illegal drug use,family history of melanoma,a
+1052033,105203,1,105,2,3,pTitle0105203,"People over the age of 75 should always receive cancer screening more regularly because
+of higher risks at advanced age (T/F)",TRUE,FALSE,"","",b
+1052041,105204,1,105,2,4,pTitle0105204,"When given different options for colorectal cancer screening, what would be a good
+option for someone who does not want invasive procedures?",colonoscopy,fecal immunochemical test,stool DNA test,more than one answer is correct,d
+1052042,105204,1,105,2,4,pTitle0105204,"Both FIT and gFOBT look for occult blood in the patient’s stool. What is one difference
+in preparing for the test?",frequency of screening,effect from certain food & drug,age requirement,all of the above,b
+1052043,105204,1,105,2,4,pTitle0105204,"DNA screening, like FIT and gFOBT, analyzes the patient’s stool and is done once a year
+(T/F)",TRUE,FALSE,"","",b
+1052051,105205,1,105,2,5,pTitle0105205,"When given different options for colorectal cancer screening, what would be a good
+option for someone who does not want to get screened very frequently?",colonoscopy,fecal immunochemical test,stool DNA test,digital rectal exam,a
+1052052,105205,1,105,2,5,pTitle0105205,"Colonoscopy is generally a safe but carry a small risk of puncturing the wall of the colon
+or rectum, causing blood loss (T/F)",TRUE,FALSE,"","",a
+1052053,105205,1,105,2,5,pTitle0105205,"What makes some people opt for stool-based screening compared to colonoscopy
+screening?",dietary restrictions,bowel preparation,invasive procedure,all of the above,d
+1052061,105206,1,105,2,6,pTitle0105206,What is the difference between CT scan and regular x-ray?,CT scan uses both gamma and alpha rays,CT scan is cheaper to obtain,CT scan takes multiple pictures around the patient,CT scan requires more bowel preparation,c
+1052062,105206,1,105,2,6,pTitle0105206,"If CT scan shows possible tumor, then the patient also needs a follow-up colonoscopy to
+remove the polyps (T/F)",TRUE,FALSE,"","",a
+1052063,105206,1,105,2,6,pTitle0105206,"Medicare generally covers both stool-based tests and CT scan, but not colonoscopy for
+preventative cancer screening. Therefore, patients are less likely to opt for colonoscopy
+(T/F)",TRUE,FALSE,"","",b
+1052071,105207,1,105,2,7,pTitle0105207,"In order to fully empty the stomach before colonoscopy, patients must fast for 3 days
+before the procedure (T/F)",TRUE,FALSE,"","",b
+1052072,105207,1,105,2,7,pTitle0105207,"A 50-year-old female is due for her first colonoscopy in a week. What is likely given to
+her to help make her bowels clean and empty?",water bottles,saline solution,liquid laxative,low-sugar Gatorade,c
+1052073,105207,1,105,2,7,pTitle0105207,"Vegan patients do not have any diet restrictions before colonoscopy because the fiber-
+rich foods are beneficial to colon visualization (T/F)",TRUE,FALSE,"","",b
+1052081,105208,1,105,2,8,pTitle0105208,"A 45-year-old man disclosed to his doctor that his parents passed away from colorectal
+cancer in their 50’s. When recommending screening methods, which one is not
+appropriate for him?",Colonoscopy,CT scan,stool-based test,none of the above,b
+1052082,105208,1,105,2,8,pTitle0105208,"What are some of the factors patients have to factor in when choosing the screening
+method for colorectal screening?",cancer risk,insurance coverage,personal preference,all of the above,d
+1052083,105208,1,105,2,8,pTitle0105208,"Providers should only recommend colonoscopy screening to all patients because that is
+the most effective method (T/F)",TRUE,FALSE,"","",b
+1052091,105209,1,105,2,9,pTitle0105209,"Above the age of 45, patients can choose any kind of colorectal screening method they
+want because the Affordable Care Act mandates universal coverage and no out-of-pocket
+cost (T/F)",TRUE,FALSE,"","",b
+1052092,105209,1,105,2,9,pTitle0105209,"Despite insurance coverage, what situations may require patients to pay out-of-pocket
+for colorectal screening?",out-of-network provider,certain screening methods like CT scan,diagnostic follow-up,all of the above,d
+1052093,105209,1,105,2,9,pTitle0105209,"What does the patient need to pay when doctors remove polyps after they are detected in
+screening?",deductible and co-pay,medical rebate,capitation,increased premium,a
+1052101,105210,1,105,2,10,pTitle0105210,"A couple in their 50’s recently retired and have medical insurance through Medicare.
+Their son recently turned 25. Can their son be covered under their plan?",yes,no,depends on if he’s in graduate school,depends on the state,b
+1052102,105210,1,105,2,10,pTitle0105210,"Young adults who are eligible for their parents’ insurance got the same care as before the
+ACA allowed them to be covered. This is because young adults are usually healthy to
+begin with (T/F)",TRUE,FALSE,"","",b
+1052103,105210,1,105,2,10,pTitle0105210,"Young adults benefit from the ACA policy allowing them to stay under their parent’s
+insurance because",it provides more employment,it reduces out-of-pocket costs,it gives them peace of mind,none of the above,b
+1052111,105211,1,105,2,11,pTitle0105211,"What legislative change has caused an increase in colorectal cancer screening among
+people ages 45 to 49?",American Cancer Society,Affordable Care Act,Affordable Colorectal Screening,American Health Initiative,b
+1052112,105211,1,105,2,11,pTitle0105211,"New guidelines in 2018 likely made doctors and patients more aware of the importance
+of colorectal cancer screening, especially in younger patients (T/F)",TRUE,FALSE,"","",a
+1052113,105211,1,105,2,11,pTitle0105211,What is the biggest reason to update the guideline for colorectal screening?,screening can increase hospital revenue,insurance companies can attract more patients,earlier diagnosis increases survival rate,all of the above,c
+1053011,105301,1,105,3,1,pTitle0105301,"The small intestine contains many layers, and it is made up of both the colon and rectum
+(T/F)",TRUE,FALSE,"","",b
+1053012,105301,1,105,3,1,pTitle0105301,"A patient is diagnosed with colorectal cancer. In the clinic, he appears pale and tired. Lab
+results show low blood count. How can colorectal cancer cause low red blood sells over
+time if it is not treated?",it prevents cell formation in the bone marrow,cancer cells produce toxins that destructs blood cells,bleeding through the digestive tack,none of the above,c
+1053013,105301,1,105,3,1,pTitle0105301,"Screening for colorectal cancer has the potential to save lives. What is an effective
+screening method?",ultrasound,metabolic panel,colonoscopy,all of the above,c
+1053014,105301,1,105,3,1,pTitle0105301,"Colorectal cancer can progress to different stages. What does the stage of a tumor depend
+on?",depth of infiltration,cell architecture,genetic mutation,blood count,a
+1053015,105301,1,105,3,1,pTitle0105301,"if colorectal cancer has spread to multiple body organs, a systemic therapy is more suited
+for treatment (T/F)",TRUE,FALSE,"","",a

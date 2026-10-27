@@ -1,7 +1,7 @@
 
-import fs from 'fs';
-import path from 'path';
-import mysql, { type ResultSetHeader } from 'mysql2/promise';
+import fs from 'node:fs';
+import path from 'node:path';
+import mysql, { type RowDataPacket, type ResultSetHeader } from 'mysql2/promise';
 
 const envPath = path.resolve(process.cwd(), '.env.local');
 console.log(`Loading env from ${envPath}`);
@@ -36,8 +36,8 @@ function parseCSV(content: string): string[][] {
     let currentVal = '';
     let insideQuotes = false;
 
-    // Normalize line endings to \n seems risky if we want to preserve data, 
-    // but typically safe for standard text. 
+    // Normalize line endings to \n seems risky if we want to preserve data,
+    // but typically safe for standard text.
     // Better to handle \r\n in loop.
 
     for (let i = 0; i < content.length; i++) {
@@ -84,45 +84,45 @@ function parseCSV(content: string): string[][] {
     return rows;
 }
 
-async function populatePartA(connection: mysql.Connection) {
-    console.log('Populating Part A data...');
+async function populatePartC(connection: mysql.Connection) {
+    console.log('Populating Part C data...');
 
     // Disable FK checks for truncation
     await connection.query("SET FOREIGN_KEY_CHECKS = 0");
 
-    const sentencesPath = path.resolve(process.cwd(), 'docs/Study Material/part_a_sentences.csv');
+    const sentencesPath = path.resolve(process.cwd(), 'docs/Study Material/part_c_sentences.csv');
     if (fs.existsSync(sentencesPath)) {
         console.log(`Reading ${sentencesPath}...`);
         const content = fs.readFileSync(sentencesPath, 'utf8');
         const rows = parseCSV(content).slice(1);
 
         if (rows.length > 0) {
-            await connection.query('TRUNCATE TABLE part_a_sentences');
+            await connection.query('TRUNCATE TABLE part_c_sentences');
 
             for (const cols of rows) {
                 if (cols.length < 15) continue;
                 await connection.execute(`
-                    INSERT INTO part_a_sentences 
-                    (study_part_id, set_id, text_id, sentence_index, sp1_con_id, predictability, predict_id, make_sense, make_sense_id, text_type, text_type_id, gen_type, gen_type_id, note, content)
+                    INSERT INTO part_c_sentences
+                    (study_part_id, set_id, text_id, sentence_index, sp3_con_id, predictability, predict_id, make_sense, make_sense_id, text_type, text_type_id, gen_type, gen_type_id, note, content)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                  `, [
                     cols[0], cols[1], cols[2], cols[3], cols[4], cols[5], cols[6], cols[7], cols[8], cols[9], cols[10], cols[11], cols[12], cols[13], cols[14]
                 ]);
             }
-            console.log(`Inserted ${rows.length} rows into part_a_sentences.`);
+            console.log(`Inserted ${rows.length} rows into part_c_sentences.`);
         }
     } else {
         console.warn(`File not found: ${sentencesPath}`);
     }
 
-    const questionsPath = path.resolve(process.cwd(), 'docs/Study Material/part_a_questions.csv');
+    const questionsPath = path.resolve(process.cwd(), 'docs/Study Material/part_c_questions.csv');
     if (fs.existsSync(questionsPath)) {
         console.log(`Reading ${questionsPath}...`);
         const content = fs.readFileSync(questionsPath, 'utf8');
         const rows = parseCSV(content).slice(1);
 
         if (rows.length > 0) {
-            await connection.query('TRUNCATE TABLE part_a_questions');
+            await connection.query('TRUNCATE TABLE part_c_questions');
 
             for (const cols of rows) {
                 if (cols.length < 15) continue;
@@ -135,14 +135,14 @@ async function populatePartA(connection: mysql.Connection) {
                 else if (correctAns === cols[13].trim()) correctOption = 4;
 
                 await connection.execute(`
-                    INSERT INTO part_a_questions
-                    (study_part_id, sent_set, text_id, sent_order, p1_con_id, predict_id, make_sense_id, text_type_id, gen_type_id, question_text, option_1, option_2, option_3, option_4, correct_ans, correct_option)
+                    INSERT INTO part_c_questions
+                    (study_part_id, sent_set, text_id, sent_order, p3_con_id, predict_id, make_sense_id, text_type_id, gen_type_id, question_text, option_1, option_2, option_3, option_4, correct_ans, correct_option)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                  `, [
                     cols[0], cols[1], cols[2], cols[3], cols[4], cols[5], cols[6], cols[7], cols[8], cols[9], cols[10], cols[11], cols[12], cols[13], cols[14], correctOption
                 ]);
             }
-            console.log(`Inserted ${rows.length} rows into part_a_questions.`);
+            console.log(`Inserted ${rows.length} rows into part_c_questions.`);
         }
     } else {
         console.warn(`File not found: ${questionsPath}`);
@@ -256,7 +256,7 @@ async function populatePartB(connection: mysql.Connection) {
             const storyId = storyLabelToId.get(seg.storyLabel);
             if (storyId) {
                 await connection.execute(
-                    `INSERT INTO part_b_formal_segments 
+                    `INSERT INTO part_b_formal_segments
                     (story_id, content, segment_order, text_id, predictability, predict_id, sp2_con_id)
                     VALUES (?, ?, ?, ?, ?, ?, ?)`,
                     [storyId, seg.content, seg.segmentOrder, seg.textId, seg.predictability, seg.predictId, seg.sp2ConId]
@@ -381,8 +381,8 @@ async function populatePartB(connection: mysql.Connection) {
     await connection.query("SET FOREIGN_KEY_CHECKS = 1");
 }
 
-async function populatePartC(connection: mysql.Connection) {
-    console.log('Populating Part C data...');
+async function populatePartA(connection: mysql.Connection) {
+    console.log('Populating Part A data...');
     await connection.query("SET FOREIGN_KEY_CHECKS = 0");
 
     // Helper to read CSV and insert data
@@ -422,43 +422,43 @@ async function populatePartC(connection: mysql.Connection) {
         }
     };
 
-    // 1. Part C Topic
-    await seedTable('part_c_topic.csv', 'part_c_topic',
+    // 1. Part A Topic
+    await seedTable('part_a_topic.csv', 'part_a_topic',
         ['topID', 'topTitle', 'topIdeasBonusWords']
     );
 
-    // 2. Part C Subtopic
-    await seedTable('part_c_subtopic.csv', 'part_c_subtopic',
+    // 2. Part A Subtopic
+    await seedTable('part_a_subtopic.csv', 'part_a_subtopic',
         ['subtopID', 'topID', 'subtopTitle']
     );
 
-    // 3. Part C Passage
-    await seedTable('part_c_passage.csv', 'part_c_passage',
+    // 3. Part A Passage
+    await seedTable('part_a_passage.csv', 'part_a_passage',
         ['topID', 'subtopID', 'conID', 'passID', 'passOrder', 'passTitle', 'passText']
     );
 
-    // 4. Part C Questions
-    await seedTable('part_c_questions.csv', 'part_c_questions',
+    // 4. Part A Questions
+    await seedTable('part_a_questions.csv', 'part_a_questions',
         ['questionID', 'passID', 'topID', 'subtopID', 'conID', 'passOrder', 'passTitle', 'questionText', 'choiceA', 'choiceB', 'choiceC', 'choiceD', 'correctAns']
     );
 
-    // 5. Part C Practice Topic
-    await seedTable('part_c_prac_topic.csv', 'part_c_prac_topic',
+    // 5. Part A Practice Topic
+    await seedTable('part_a_prac_topic.csv', 'part_a_prac_topic',
         ['topID', 'topTitle', 'topIdeasBonusWords']
     );
 
-    // 6. Part C Practice Subtopic
-    await seedTable('part_c_prac_subtopic.csv', 'part_c_prac_subtopic',
+    // 6. Part A Practice Subtopic
+    await seedTable('part_a_prac_subtopic.csv', 'part_a_prac_subtopic',
         ['subtopID', 'topID', 'subtopTitle']
     );
 
 
-    // 7. Part C Practice Passage
-    await seedTable('part_c_prac_passage.csv', 'part_c_prac_passage',
+    // 7. Part A Practice Passage
+    await seedTable('part_a_prac_passage.csv', 'part_a_prac_passage',
         ['topID', 'subtopID', 'conID', 'passID', 'passOrder', 'passTitle', 'passText']
     );
 
-    // 8. Part C Vocabulary Questions (Embedded Data as per request)
+    // 8. Part A Vocabulary Questions (Embedded Data as per request)
     console.log('Populating Vocabulary Questions...');
     const vocabQuestions = [
         {
@@ -538,11 +538,11 @@ async function populatePartC(connection: mysql.Connection) {
         }
     ];
 
-    await connection.query("TRUNCATE TABLE part_c_vocabulary_questions");
+    await connection.query("TRUNCATE TABLE part_a_vocabulary_questions");
     for (const q of vocabQuestions) {
         await connection.execute(
-            `INSERT INTO part_c_vocabulary_questions 
-            (word, option_1, option_2, option_3, option_4, option_5, option_6, correct_option) 
+            `INSERT INTO part_a_vocabulary_questions
+            (word, option_1, option_2, option_3, option_4, option_5, option_6, correct_option)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [q.word, q.options[0], q.options[1], q.options[2], q.options[3], q.options[4], q.options[5], q.correct]
         );
@@ -552,13 +552,60 @@ async function populatePartC(connection: mysql.Connection) {
     await connection.query("SET FOREIGN_KEY_CHECKS = 1");
 }
 
+// Additive upgrade for existing study databases. Never runs schema.sql or seeds.
+async function addPartCTiming(connection: mysql.Connection): Promise<void> {
+    const [columns] = await connection.execute<RowDataPacket[]>(
+        "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'part_c_logs'"
+    );
+    if (!columns.length) throw new Error("part_c_logs is missing; initialize a new database first");
+    const present = new Set(columns.map(column => String(column.COLUMN_NAME)));
+    const definitions = [
+        ["word_reading_time_ms", "INT UNSIGNED NULL"],
+        ["sentence_reading_time_ms", "INT UNSIGNED NULL"],
+        ["event_id", "CHAR(36) NULL"],
+    ];
+    const additions = definitions.filter(([name]) => !present.has(name))
+        .map(([name, definition]) => `ADD COLUMN ${name} ${definition}`);
+    if (additions.length) await connection.query(`ALTER TABLE part_c_logs ${additions.join(", ")}`);
+    const [indexes] = await connection.execute<RowDataPacket[]>(
+        "SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'part_c_logs' AND INDEX_NAME = 'part_c_logs_event_id_unique'"
+    );
+    if (!indexes.length) await connection.query("ALTER TABLE part_c_logs ADD UNIQUE KEY part_c_logs_event_id_unique (event_id)");
+    console.log("Part C timing columns ready; existing records and study materials preserved.");
+}
+
 async function main() {
     console.log('Connecting to database...');
 
     let connection: mysql.Connection | undefined;
     try {
-        connection = await mysql.createConnection(dbConfig);
+        connection = await mysql.createConnection(process.env.MYSQL_URL ? { uri: process.env.MYSQL_URL } : dbConfig);
         console.log('Connected.');
+        if (process.argv.includes("--part-a-recall-phases")) {
+            const [columns] = await connection.execute<RowDataPacket[]>(
+                "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'part_a_summaries' AND COLUMN_NAME = 'phase'"
+            );
+            if (!columns.length) {
+                await connection.query("ALTER TABLE part_a_summaries ADD COLUMN phase ENUM('practice', 'formal') NOT NULL DEFAULT 'formal' AFTER participant_id");
+            }
+            console.log("Part A recall phases ready; existing summaries preserved as formal.");
+            return;
+        }
+        if (process.argv.includes("--part-c-recall")) {
+            await connection.query(`CREATE TABLE IF NOT EXISTS part_c_summaries (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                participant_id BIGINT NOT NULL,
+                content TEXT NOT NULL,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (participant_id) REFERENCES participants(participant_id)
+            )`);
+            console.log("Part C recall storage ready; existing records preserved.");
+            return;
+        }
+        if (process.argv.includes("--part-c-timing")) {
+            await addPartCTiming(connection);
+            return;
+        }
 
         const schemaPath = path.resolve(process.cwd(), 'src/db/schema.sql');
         const schemaSql = fs.readFileSync(schemaPath, 'utf8');
@@ -576,14 +623,15 @@ async function main() {
         }
 
         console.log('Schema migration completed.');
-        await populatePartA(connection);
-        await populatePartB(connection);
         await populatePartC(connection);
+        await populatePartB(connection);
+        await populatePartA(connection);
 
         console.log('Verification completed.');
 
     } catch (error) {
         console.error('Fatal Error:', error);
+        process.exitCode = 1;
     } finally {
         if (connection) await connection.end();
     }

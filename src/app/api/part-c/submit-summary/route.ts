@@ -1,24 +1,29 @@
+import type { ResultSetHeader } from "mysql2";
 import { NextResponse } from "next/server";
+
 import { pool } from "@/lib/db";
-import { RowDataPacket } from "mysql2";
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<NextResponse> {
+    let body: unknown;
     try {
-        const body = await request.json();
-        const { participantId, content } = body;
-
-        if (!participantId || !content) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-        }
-
-        const [result] = await pool.execute(
-            "INSERT INTO part_c_summaries (participant_id, content) VALUES (?, ?)",
-            [participantId, content]
+        body = await request.json();
+    } catch {
+        return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+    if (!body || typeof body !== "object" || !("participantId" in body) || !("content" in body) ||
+        typeof body.participantId !== "string" || !/^\d{1,18}$/.test(body.participantId) ||
+        typeof body.content !== "string" || !body.content.trim() || body.content.length > 16000) {
+        return NextResponse.json({ error: "A participant ID and recall of 1–16000 characters are required" }, { status: 400 });
+    }
+    try {
+        const [result] = await pool.execute<ResultSetHeader>(
+            "INSERT INTO part_c_summaries (participant_id, content) SELECT participant_id, ? FROM participants WHERE participant_id = ?",
+            [body.content.trim(), body.participantId]
         );
-
-        return NextResponse.json({ success: true, id: (result as any).insertId });
+        if (!result.affectedRows) return NextResponse.json({ error: "Participant not found" }, { status: 404 });
+        return NextResponse.json({ success: true, id: result.insertId });
     } catch (error) {
-        console.error("Failed to submit Part C summary:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        console.error("Failed to save Part C recall:", error);
+        return NextResponse.json({ error: "Failed to save recall" }, { status: 500 });
     }
 }

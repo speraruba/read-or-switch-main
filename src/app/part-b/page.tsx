@@ -2,7 +2,6 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import ComprehensionQuestions from "./components/ComprehensionQuestions";
 import StoryReading from "./components/StoryReading";
 import SummaryInput from "./components/SummaryInput";
 
@@ -10,11 +9,9 @@ type Phase =
     | "instructions"
     | "practice_reading"
     | "practice_summary"
-    | "practice_questions"
     | "formal_intro"
     | "formal_reading"
-    | "formal_summary"
-    | "formal_questions";
+    | "formal_summary";
 
 export default function PartBPage() {
     return (
@@ -39,9 +36,6 @@ function PartBOrchestrator() {
                 setView("practice_summary");
                 break;
             case "practice_summary":
-                setView("practice_questions");
-                break;
-            case "practice_questions":
                 setView("formal_intro");
                 break;
             case "formal_intro":
@@ -51,11 +45,8 @@ function PartBOrchestrator() {
                 setView("formal_summary");
                 break;
             case "formal_summary":
-                setView("formal_questions");
-                break;
-            case "formal_questions":
-                // Go to Part C (Part 3)
-                router.push(`/part-c?participant_id=${participantId}`);
+                // Sentence reading is now the final study section.
+                router.push(`/part-c?participant_id=${encodeURIComponent(participantId)}`);
                 break;
         }
     };
@@ -79,7 +70,7 @@ function PartBOrchestrator() {
                             ID: <span className="text-[var(--foreground)]">{participantId}</span>
                         </div>
                         <div className="text-sm font-medium text-[var(--foreground)] tracking-wide">
-                            {getViewLabel(view)}
+                            Part B · {getViewLabel(view)}
                         </div>
                     </div>
                 </header>
@@ -87,11 +78,11 @@ function PartBOrchestrator() {
             <main className={isReadingMode ? "h-full w-full" : "px-6"}>
                 {view === "instructions" && (
                     <div className={cardClass}>
-                        <h2 className={primaryTitle}>Part 2: Story Reading Task</h2>
+                        <h2 className={primaryTitle}>Part B: Story Reading Study</h2>
                         <div className={bodyText}>
                             <p className="mb-4">You will read several stories.</p>
-                            <p className="mb-4">Some are for practice, followed by a main task.</p>
-                            <p>After reading, you will answer some questions.</p>
+                            <p className="mb-4">Practice lasts 4 minutes, followed by a 15-minute formal task.</p>
+                            <p>After each phase, recall what you read using speech-to-text or typing.</p>
                         </div>
                         <button type="button" onClick={handleNext} className={buttonClass}>
                             Start Practice
@@ -116,23 +107,16 @@ function PartBOrchestrator() {
                     />
                 )}
 
-                {view === "practice_questions" && (
-                    <ComprehensionQuestions
-                        participantId={participantId}
-                        phase="practice"
-                        onComplete={handleNext}
-                    />
-                )}
 
                 {view === "formal_intro" && (
                     <div className={cardClass}>
-                        <h2 className={primaryTitle}>Main Task</h2>
+                        <h2 className={primaryTitle}>Formal Task</h2>
                         <div className={bodyText}>
                             <p className="mb-4">You will now begin the formal reading task.</p>
                             <p>You have <strong className="text-[var(--foreground)]">15 minutes</strong>.</p>
                         </div>
                         <button type="button" onClick={handleNext} className={buttonClass}>
-                            Start Main Task
+                            Start Formal Task
                         </button>
                     </div>
                 )}
@@ -154,13 +138,6 @@ function PartBOrchestrator() {
                     />
                 )}
 
-                {view === "formal_questions" && (
-                    <ComprehensionQuestions
-                        participantId={participantId}
-                        phase="formal"
-                        onComplete={handleNext}
-                    />
-                )}
             </main>
         </div>
     );

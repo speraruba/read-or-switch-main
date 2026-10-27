@@ -6,7 +6,7 @@ import { RowDataPacket } from "mysql2";
 export async function GET() {
     try {
         const [rows] = await pool.query<RowDataPacket[]>(
-            "SELECT id, set_id, sentence_index, content FROM part_a_sentences ORDER BY set_id, sentence_index"
+            "SELECT id, set_id, sentence_index, content FROM part_c_sentences ORDER BY set_id, sentence_index"
         );
         return NextResponse.json(rows);
     } catch (error: unknown) {

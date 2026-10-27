@@ -1,8 +1,9 @@
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
 
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { parse } from 'csv-parse/sync';
 
 export async function GET() {
@@ -32,16 +33,16 @@ export async function GET() {
             const practiceContent = fs.readFileSync(practicePath, 'utf8');
             const questionsContent = fs.existsSync(questionsPath) ? fs.readFileSync(questionsPath, 'utf8') : null;
 
-            const formalRecords = parse(formalContent, { columns: true, skip_empty_lines: true, trim: true }) as any[];
-            const practiceRecords = parse(practiceContent, { columns: true, skip_empty_lines: true, trim: true }) as any[];
-            const questionRecords = questionsContent ? parse(questionsContent, { columns: true, skip_empty_lines: true, trim: true }) as any[] : [];
+            const formalRecords = parse(formalContent, { columns: true, skip_empty_lines: true, trim: true }) as Record<string, string>[];
+            const practiceRecords = parse(practiceContent, { columns: true, skip_empty_lines: true, trim: true }) as Record<string, string>[];
+            const questionRecords = questionsContent ? parse(questionsContent, { columns: true, skip_empty_lines: true, trim: true }) as Record<string, string>[] : [];
 
-            async function insertRecords(records: any[], phase: 'practice' | 'formal') {
+            async function insertRecords(records: Record<string, string>[], phase: 'practice' | 'formal') {
                 const suffix = phase;
                 const storyTable = `part_b_${suffix}_stories`;
                 const segmentTable = `part_b_${suffix}_segments`;
 
-                const storiesMap = new Map<string, any[]>();
+                const storiesMap = new Map<string, Record<string, string>[]>();
                 for (const row of records) {
                     const title = row.StoryTitle;
                     if (!storiesMap.has(title)) storiesMap.set(title, []);
@@ -54,7 +55,7 @@ export async function GET() {
                     const firstRow = rows[0];
                     const storyTopicId = firstRow.StoryTopicID;
 
-                    const [result]: any = await connection.query(
+                    const [result] = await connection.query<ResultSetHeader>(
                         `INSERT INTO ${storyTable} (title, story_topic_id) VALUES (?, ?)`,
                         [title, storyTopicId]
                     );
@@ -71,8 +72,8 @@ export async function GET() {
                         if (!sp2ConId && row['SP2ConID']) sp2ConId = row['SP2ConID'];
 
                         await connection.query(
-                            `INSERT INTO ${segmentTable} 
-                            (story_id, content, segment_order, text_id, predictability, predict_id, sp2_con_id) 
+                            `INSERT INTO ${segmentTable}
+                            (story_id, content, segment_order, text_id, predictability, predict_id, sp2_con_id)
                             VALUES (?, ?, ?, ?, ?, ?, ?)`,
                             [storyId, content, order, textId, predictability, predictId, sp2ConId]
                         );
@@ -112,26 +113,26 @@ export async function GET() {
                     else if (correctStr === op4) correctOption = 4;
 
                     await connection.query(
-                        `INSERT INTO ${questionsTable} 
-                        (story_id, question_text, question_order, option_1, option_2, option_3, option_4, correct_option) 
+                        `INSERT INTO ${questionsTable}
+                        (story_id, question_text, question_order, option_1, option_2, option_3, option_4, correct_option)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                         [storyId, questionText, order, op1, op2, op3, op4, correctOption]
                     );
                 }
             }
 
-            const [rows] = await connection.query('SELECT COUNT(*) as c FROM part_b_practice_stories');
-            const [rows2] = await connection.query('SELECT COUNT(*) as c FROM part_b_practice_segments');
-            const countStories = (rows as any)[0].c;
-            const countSegments = (rows2 as any)[0].c;
+            const [rows] = await connection.query<(RowDataPacket & { c: number })[]>('SELECT COUNT(*) as c FROM part_b_practice_stories');
+            const [rows2] = await connection.query<(RowDataPacket & { c: number })[]>('SELECT COUNT(*) as c FROM part_b_practice_segments');
+            const countStories = rows[0].c;
+            const countSegments = rows2[0].c;
 
             return NextResponse.json({ success: true, message: "Part B seeded NEW", countStories, countSegments });
 
         } finally {
             connection.release();
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Seed error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to seed study materials" }, { status: 500 });
     }
 }

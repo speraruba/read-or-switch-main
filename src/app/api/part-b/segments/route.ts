@@ -1,3 +1,4 @@
+import type { RowDataPacket } from "mysql2";
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
         const participants = await query(
             "SELECT part2_condition FROM participants WHERE participant_id = ?",
             [participantId]
-        ) as any[];
+        ) as (RowDataPacket & { part2_condition: number })[];
 
         if (!participants.length) {
             return NextResponse.json({ error: "Participant not found" }, { status: 404 });
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
         const segmentsTable = phase === 'practice' ? 'part_b_practice_segments' : 'part_b_formal_segments';
 
         let querySql = `SELECT * FROM ${segmentsTable} WHERE story_id = ? ORDER BY segment_order ASC`;
-        let queryParams = [storyId];
+        let queryParams: (string | number)[] = [storyId];
 
         if (phase === 'formal') {
             querySql = `SELECT * FROM ${segmentsTable} WHERE story_id = ? AND sp2_con_id = ? ORDER BY segment_order ASC`;

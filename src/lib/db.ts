@@ -13,7 +13,7 @@ export const pool = process.env.MYSQL_URL
           queueLimit: 0,
       });
 
-export async function query(sql: string, values?: (string | number | boolean | null | undefined)[]) {
+export async function query(sql: string, values?: (string | number | boolean | null)[]) {
     const [results] = await pool.execute(sql, values);
     return results;
 }

@@ -33,7 +33,7 @@ export default function Home() {
           {/* Introduction */}
           <section className="space-y-3">
             <p className="text-sm leading-relaxed text-[var(--foreground)]">
-              You are being asked to participate in a voluntary research study. The purpose of this study is to understand how people learn information through reading and searching from multiple texts. In this study, you will fill out surveys, learn different topics, answer what you have learned, and complete cognitive ability measures. During the study, you will need to learn several topics under a limit of time. Some topics are more difficult than others. You can decide how you want to allocate your time. The goal is to learn as much as you can. After learning, you will need to report what you have learned and answer comprehension questions. You will receive additional bonus money if the accuracy of your comprehension questions is higher than 90%. Your participation will last about 60 minutes.
+              You are being asked to participate in a voluntary research study. The purpose of this study is to understand how people learn information through reading and searching from multiple texts. In this study, you will fill out surveys, learn different topics, answer what you have learned, and answer questions about the sentences you read. During the study, you will need to learn several topics under a limit of time. Some topics are more difficult than others. You can decide how you want to allocate your time. The goal is to learn as much as you can. After learning, you will need to report what you have learned and answer comprehension questions. You will receive additional bonus money if the accuracy of your comprehension questions is higher than 90%. Your participation will last about 60 minutes.
             </p>
           </section>
 
@@ -57,7 +57,7 @@ export default function Home() {
               <li>Completing a survey about your demographic information</li>
               <li>Learning information online</li>
               <li>Reporting what you have learned</li>
-              <li>Taking some cognitive ability tasks</li>
+              <li>Reading sentences and answering comprehension questions</li>
             </ul>
             <p className="text-sm leading-relaxed text-[var(--foreground)] mt-3">
               During the online information learning task, you will do screen sharing with the researchers, so that the researchers will be able to monitor your progress. At the end of the learning task, you will be asked to recall what you have learned today as much as you can. When you start the recall, the Zoom meeting will be recorded (including the screen capture, your verbal response of free recall). The recall usually takes no more than 5 minutes. The recording will be turned off upon the completion of the recall. We will delete the video recording file (screen capture) right after the end of the study, and delete the audio recording files as soon as we complete the transcription of your recall response. No recording files will be stored for other uses.
@@ -152,7 +152,7 @@ export default function Home() {
             />
           </div>
 
-          <label 
+          <label
             htmlFor="consent"
             className="flex items-start gap-4 p-4 rounded-lg border border-[var(--border)] bg-[var(--input-bg)] hover:bg-[var(--input-bg)]/80 transition-colors cursor-pointer"
           >

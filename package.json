@@ -7,7 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "db:migrate:part-names": "node --env-file=.env.local src/db/rename-study-parts.mjs",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:migrate:part-c-timing": "node --experimental-strip-types src/db/migrate.ts --part-c-timing",
+    "db:migrate:part-c-recall": "node --experimental-strip-types src/db/migrate.ts --part-c-recall",
+    "db:migrate:part-a-recall-phases": "node --experimental-strip-types src/db/migrate.ts --part-a-recall-phases",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test:one": "node --experimental-strip-types --test",
+    "db:migrate:production": "node src/db/upgrade-production.mjs"
   },
   "dependencies": {
     "csv-parse": "^6.1.0",
@@ -17,6 +24,7 @@
     "react-dom": "19.2.0"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -26,5 +34,8 @@
     "eslint-config-next": "^15.1.11",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS participants (
     participant_id BIGINT PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     part2_condition INT COMMENT '0 or 1',
-    part3_condition INT COMMENT '0, 1, or 2',
+    part1_condition INT COMMENT '0, 1, or 2',
     email VARCHAR(255) NOT NULL DEFAULT 'testing@illionis.edu',
     consent BOOLEAN NOT NULL DEFAULT TRUE
 );
@@ -36,16 +36,16 @@ CREATE TABLE IF NOT EXISTS participant_knowledge (
     FOREIGN KEY (participant_id) REFERENCES participants(participant_id)
 );
 
--- Part A: Sentence Reading Study Tables
+-- Part C: Sentence Reading Study Tables
 
-DROP TABLE IF EXISTS part_a_sentences;
-CREATE TABLE IF NOT EXISTS part_a_sentences (
+DROP TABLE IF EXISTS part_c_sentences;
+CREATE TABLE IF NOT EXISTS part_c_sentences (
     id INT AUTO_INCREMENT PRIMARY KEY,
     study_part_id INT,
     set_id INT NOT NULL,
     text_id VARCHAR(50),
     sentence_index INT NOT NULL,
-    sp1_con_id VARCHAR(50),
+    sp3_con_id VARCHAR(50),
     predictability VARCHAR(10),
     predict_id INT,
     make_sense VARCHAR(10),
@@ -58,14 +58,14 @@ CREATE TABLE IF NOT EXISTS part_a_sentences (
     content TEXT NOT NULL
 );
 
-DROP TABLE IF EXISTS part_a_questions;
-CREATE TABLE IF NOT EXISTS part_a_questions (
+DROP TABLE IF EXISTS part_c_questions;
+CREATE TABLE IF NOT EXISTS part_c_questions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     study_part_id INT,
     sent_set INT,
     text_id VARCHAR(50),
     sent_order INT,
-    p1_con_id VARCHAR(50),
+    p3_con_id VARCHAR(50),
     predict_id INT,
     make_sense_id INT,
     text_type_id INT,
@@ -79,8 +79,8 @@ CREATE TABLE IF NOT EXISTS part_a_questions (
     correct_option INT COMMENT '1-4 (Legacy/index)'
 );
 
-DROP TABLE IF EXISTS part_a_responses;
-CREATE TABLE IF NOT EXISTS part_a_responses (
+DROP TABLE IF EXISTS part_c_responses;
+CREATE TABLE IF NOT EXISTS part_c_responses (
     id INT AUTO_INCREMENT PRIMARY KEY,
     participant_id BIGINT NOT NULL,
     question_id INT NOT NULL,
@@ -89,17 +89,21 @@ CREATE TABLE IF NOT EXISTS part_a_responses (
     reaction_time_ms INT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (participant_id) REFERENCES participants(participant_id),
-    FOREIGN KEY (question_id) REFERENCES part_a_questions(id)
+    FOREIGN KEY (question_id) REFERENCES part_c_questions(id)
 );
 
-DROP TABLE IF EXISTS part_a_logs;
-CREATE TABLE IF NOT EXISTS part_a_logs (
+DROP TABLE IF EXISTS part_c_logs;
+CREATE TABLE IF NOT EXISTS part_c_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     participant_id BIGINT NOT NULL,
     set_id INT NOT NULL,
     sentence_index INT NOT NULL,
     word_index INT,
     action_type VARCHAR(50) DEFAULT 'word_reveal',
+    word_reading_time_ms INT UNSIGNED NULL,
+    sentence_reading_time_ms INT UNSIGNED NULL,
+    event_id CHAR(36) NULL,
+    UNIQUE KEY part_c_logs_event_id_unique (event_id),
     timestamp DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
     FOREIGN KEY (participant_id) REFERENCES participants(participant_id)
 );
@@ -269,30 +273,30 @@ CREATE TABLE IF NOT EXISTS part_b_formal_responses (
 );
 
 -- ==========================================
--- Part C: Text Foraging
+-- Part A: Text Foraging
 -- ==========================================
 
--- part_c_topic
-DROP TABLE IF EXISTS `part_c_topic`;
-CREATE TABLE `part_c_topic` (
+-- part_a_topic
+DROP TABLE IF EXISTS `part_a_topic`;
+CREATE TABLE `part_a_topic` (
     `topID` varchar(8) NOT NULL,
     `topTitle` varchar(100) NOT NULL,
     `topIdeasBonusWords` longtext NOT NULL,
     PRIMARY KEY (`topID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_subtopic
-DROP TABLE IF EXISTS `part_c_subtopic`;
-CREATE TABLE `part_c_subtopic` (
+-- part_a_subtopic
+DROP TABLE IF EXISTS `part_a_subtopic`;
+CREATE TABLE `part_a_subtopic` (
     `subtopID` varchar(8) NOT NULL,
     `topID` varchar(8) NOT NULL,
     `subtopTitle` varchar(100) NOT NULL,
     PRIMARY KEY (`subtopID`, `topID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_passage
-DROP TABLE IF EXISTS `part_c_passage`;
-CREATE TABLE `part_c_passage` (
+-- part_a_passage
+DROP TABLE IF EXISTS `part_a_passage`;
+CREATE TABLE `part_a_passage` (
     `topID` varchar(8) NOT NULL,
     `subtopID` varchar(8) NOT NULL,
     `conID` varchar(8) NOT NULL,
@@ -303,9 +307,9 @@ CREATE TABLE `part_c_passage` (
     PRIMARY KEY (`topID`, `subtopID`, `conID`, `passID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_pass_qop
-DROP TABLE IF EXISTS `part_c_pass_qop`;
-CREATE TABLE `part_c_pass_qop` (
+-- part_a_pass_qop
+DROP TABLE IF EXISTS `part_a_pass_qop`;
+CREATE TABLE `part_a_pass_qop` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `uid` BIGINT NOT NULL,
     `sid` varchar(100) NOT NULL,
@@ -322,9 +326,9 @@ CREATE TABLE `part_c_pass_qop` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_task_time
-DROP TABLE IF EXISTS `part_c_task_time`;
-CREATE TABLE `part_c_task_time` (
+-- part_a_task_time
+DROP TABLE IF EXISTS `part_a_task_time`;
+CREATE TABLE `part_a_task_time` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `uid` BIGINT NOT NULL,
     `sid` varchar(100) NOT NULL,
@@ -336,9 +340,9 @@ CREATE TABLE `part_c_task_time` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_subtop_qos
-DROP TABLE IF EXISTS `part_c_subtop_qos`;
-CREATE TABLE `part_c_subtop_qos` (
+-- part_a_subtop_qos
+DROP TABLE IF EXISTS `part_a_subtop_qos`;
+CREATE TABLE `part_a_subtop_qos` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `uid` BIGINT NOT NULL,
     `sid` varchar(100) NOT NULL,
@@ -354,26 +358,26 @@ CREATE TABLE `part_c_subtop_qos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
-DROP TABLE IF EXISTS `part_c_prac_topic`;
-CREATE TABLE `part_c_prac_topic` (
+DROP TABLE IF EXISTS `part_a_prac_topic`;
+CREATE TABLE `part_a_prac_topic` (
     `topID` varchar(8) NOT NULL,
     `topTitle` varchar(100) NOT NULL,
     `topIdeasBonusWords` longtext NOT NULL,
     PRIMARY KEY (`topID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_prac_subtopic
-DROP TABLE IF EXISTS `part_c_prac_subtopic`;
-CREATE TABLE `part_c_prac_subtopic` (
+-- part_a_prac_subtopic
+DROP TABLE IF EXISTS `part_a_prac_subtopic`;
+CREATE TABLE `part_a_prac_subtopic` (
     `subtopID` varchar(8) NOT NULL,
     `topID` varchar(8) NOT NULL,
     `subtopTitle` varchar(100) NOT NULL,
     PRIMARY KEY (`subtopID`, `topID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_prac_passage
-DROP TABLE IF EXISTS `part_c_prac_passage`;
-CREATE TABLE `part_c_prac_passage` (
+-- part_a_prac_passage
+DROP TABLE IF EXISTS `part_a_prac_passage`;
+CREATE TABLE `part_a_prac_passage` (
     `topID` varchar(8) NOT NULL,
     `subtopID` varchar(8) NOT NULL,
     `conID` varchar(8) NOT NULL,
@@ -384,9 +388,9 @@ CREATE TABLE `part_c_prac_passage` (
     PRIMARY KEY (`topID`, `subtopID`, `conID`, `passID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_prac_pass_qop
-DROP TABLE IF EXISTS `part_c_prac_pass_qop`;
-CREATE TABLE `part_c_prac_pass_qop` (
+-- part_a_prac_pass_qop
+DROP TABLE IF EXISTS `part_a_prac_pass_qop`;
+CREATE TABLE `part_a_prac_pass_qop` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `uid` BIGINT NOT NULL,
     `sid` varchar(100) NOT NULL,
@@ -403,9 +407,9 @@ CREATE TABLE `part_c_prac_pass_qop` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_prac_task_time
-DROP TABLE IF EXISTS `part_c_prac_task_time`;
-CREATE TABLE `part_c_prac_task_time` (
+-- part_a_prac_task_time
+DROP TABLE IF EXISTS `part_a_prac_task_time`;
+CREATE TABLE `part_a_prac_task_time` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `uid` BIGINT NOT NULL,
     `sid` varchar(100) NOT NULL,
@@ -417,9 +421,9 @@ CREATE TABLE `part_c_prac_task_time` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_questions
-DROP TABLE IF EXISTS `part_c_questions`;
-CREATE TABLE `part_c_questions` (
+-- part_a_questions
+DROP TABLE IF EXISTS `part_a_questions`;
+CREATE TABLE `part_a_questions` (
     `questionID` varchar(233) NOT NULL,
     `passID` char(6) NOT NULL,
     `topID` varchar(8) NOT NULL,
@@ -436,9 +440,9 @@ CREATE TABLE `part_c_questions` (
     PRIMARY KEY (`questionID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_multi_qop
-DROP TABLE IF EXISTS `part_c_multi_qop`;
-CREATE TABLE `part_c_multi_qop` (
+-- part_a_multi_qop
+DROP TABLE IF EXISTS `part_a_multi_qop`;
+CREATE TABLE `part_a_multi_qop` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `uid` BIGINT NOT NULL,
     `sid` varchar(100) NOT NULL,
@@ -453,9 +457,9 @@ CREATE TABLE `part_c_multi_qop` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_letter_item
-DROP TABLE IF EXISTS `part_c_letter_item`;
-CREATE TABLE `part_c_letter_item` (
+-- part_a_letter_item
+DROP TABLE IF EXISTS `part_a_letter_item`;
+CREATE TABLE `part_a_letter_item` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `participant_id` BIGINT NOT NULL,
     `sid` varchar(100) NOT NULL,
@@ -473,9 +477,9 @@ CREATE TABLE `part_c_letter_item` (
     UNIQUE KEY `uq_letter_item` (`participant_id`, `sid`, `round_number`, `item_index`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_vocabulary_questions
-DROP TABLE IF EXISTS `part_c_vocabulary_questions`;
-CREATE TABLE `part_c_vocabulary_questions` (
+-- part_a_vocabulary_questions
+DROP TABLE IF EXISTS `part_a_vocabulary_questions`;
+CREATE TABLE `part_a_vocabulary_questions` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `word` varchar(255) NOT NULL,
     `option_1` varchar(255) NOT NULL,
@@ -488,9 +492,9 @@ CREATE TABLE `part_c_vocabulary_questions` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_vocabulary_responses
-DROP TABLE IF EXISTS `part_c_vocabulary_responses`;
-CREATE TABLE `part_c_vocabulary_responses` (
+-- part_a_vocabulary_responses
+DROP TABLE IF EXISTS `part_a_vocabulary_responses`;
+CREATE TABLE `part_a_vocabulary_responses` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `participant_id` bigint(20) NOT NULL,
     `question_id` varchar(255) NOT NULL,
@@ -501,9 +505,9 @@ CREATE TABLE `part_c_vocabulary_responses` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- part_c_practice_responses
-DROP TABLE IF EXISTS `part_c_practice_responses`;
-CREATE TABLE `part_c_practice_responses` (
+-- part_a_practice_responses
+DROP TABLE IF EXISTS `part_a_practice_responses`;
+CREATE TABLE `part_a_practice_responses` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `participant_id` bigint(20) NOT NULL,
     `question_id` varchar(255) NOT NULL,
@@ -514,8 +518,8 @@ CREATE TABLE `part_c_practice_responses` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-DROP TABLE IF EXISTS `part_c_formal_responses`;
-CREATE TABLE `part_c_formal_responses` (
+DROP TABLE IF EXISTS `part_a_formal_responses`;
+CREATE TABLE `part_a_formal_responses` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `participant_id` bigint(20) NOT NULL,
     `question_id` varchar(255) NOT NULL,
@@ -533,6 +537,16 @@ DROP TABLE IF EXISTS part_c_summaries;
 CREATE TABLE IF NOT EXISTS part_c_summaries (
     id INT AUTO_INCREMENT PRIMARY KEY,
     participant_id BIGINT NOT NULL,
+    content TEXT NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (participant_id) REFERENCES participants(participant_id)
+);
+
+DROP TABLE IF EXISTS part_a_summaries;
+CREATE TABLE IF NOT EXISTS part_a_summaries (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    participant_id BIGINT NOT NULL,
+    phase ENUM('practice', 'formal') NOT NULL DEFAULT 'formal',
     content TEXT,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (participant_id) REFERENCES participants(participant_id)

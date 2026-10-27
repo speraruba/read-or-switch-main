@@ -1,7 +1,9 @@
 "use client";
+import CountdownTimer from "@/app/components/CountdownTimer";
 import { getApiPath } from "@/lib/api";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createActiveReadingTimer } from "@/lib/active-reading-timer";
 import type { Segment, Story } from "../types";
 
 interface StoryReadingProps {
@@ -21,7 +23,12 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
 
   const [timeLeft, setTimeLeft] = useState(durationSeconds);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [readingTimer] = useState(() => createActiveReadingTimer(durationSeconds * 1000));
+  const loadingRef = useRef(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const currentSegment = segments[currentSegmentIndex];
+  const articleKey = currentStory && currentSegment ? `${currentStory.id}:${currentSegment.id}` : null;
+  const completedRef = useRef(false);
 
   useEffect(() => {
     fetch(getApiPath(`/api/part-b/stories?phase=${phase}&participantId=${participantId}`))
@@ -30,28 +37,32 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
       .catch(err => console.error(err));
   }, [phase, participantId]);
 
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          onComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+  useLayoutEffect(() => {
+    if (view !== "reading" || articleKey === null) return;
+    readingTimer.startArticle(articleKey, performance.now());
+    const update = () => {
+      const { remainingMs } = readingTimer.snapshot(performance.now());
+      setTimeLeft(Math.ceil(remainingMs / 1000));
+      if (remainingMs === 0 && !completedRef.current) {
+        readingTimer.pause(performance.now());
+        completedRef.current = true;
+        onComplete();
+      }
     };
-  }, [onComplete]);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
+    const visibilityChanged = () => {
+      if (document.hidden) readingTimer.pause(performance.now());
+      else readingTimer.resume(performance.now());
+      update();
+    };
+    visibilityChanged();
+    const timer = window.setInterval(update, 100);
+    document.addEventListener("visibilitychange", visibilityChanged);
+    return () => {
+      readingTimer.pause(performance.now());
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", visibilityChanged);
+    };
+  }, [view, articleKey, readingTimer, onComplete]);
 
   const logAction = async (storyId: number, segmentId: number, type: "continue" | "switch" | "start_story") => {
     try {
@@ -62,25 +73,31 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
   };
 
   const handleSelectStory = async (story: Story) => {
+    if (loadingRef.current || completedRef.current) return;
+    loadingRef.current = true;
+    setIsLoading(true);
     setCurrentStory(story);
     setSegments([]);
     setCurrentSegmentIndex(0);
-    
+
     try {
       const res = await fetch(getApiPath(`/api/part-b/segments?storyId=${story.id}&phase=${phase}&participantId=${participantId}`));
       if (!res.ok) throw new Error("Failed to fetch segments");
       const data = await res.json();
-      
+
       if (Array.isArray(data) && data.length > 0) {
         setSegments(data);
         setView("reading");
         logAction(story.id, data[0]?.id, "start_story");
       } else {
-        setSegments([]);
-        setView("reading");
+        throw new Error("No story segments available");
       }
     } catch (error) {
       console.error(error);
+      alert("Failed to load story. Please try again.");
+    } finally {
+      loadingRef.current = false;
+      setIsLoading(false);
     }
   };
 
@@ -90,7 +107,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
       const nextIndex = currentSegmentIndex + 1;
       setCurrentSegmentIndex(nextIndex);
       logAction(currentStory.id, segments[nextIndex].id, "continue");
-      
+
       const scrollContainer = document.getElementById("story-scroll-container");
       if (scrollContainer) scrollContainer.scrollTop = 0;
     } else {
@@ -105,6 +122,15 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
   };
 
   const finishStory = () => {
+    const { remainingMs } = readingTimer.pause(performance.now());
+    setTimeLeft(Math.ceil(remainingMs / 1000));
+    if (remainingMs === 0) {
+      if (!completedRef.current) {
+        completedRef.current = true;
+        onComplete();
+      }
+      return;
+    }
     if (currentStory) {
       setVisitedStoryIds(prev => new Set(prev).add(currentStory.id));
     }
@@ -123,9 +149,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
               <h2 className="text-3xl font-serif font-medium text-[var(--foreground)] mb-2">Library</h2>
               <p className="text-[var(--muted)]">Choose a story to begin reading.</p>
             </div>
-            <div className="text-lg font-mono font-medium text-[var(--primary)] bg-[var(--surface)] px-4 py-2 rounded border border-[var(--border)] shadow-sm tabular-nums">
-              {formatTime(timeLeft)}
-            </div>
+            <CountdownTimer seconds={timeLeft} label="Story reading time remaining" paused />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
@@ -136,7 +160,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
                   type="button"
                   key={story.id}
                   onClick={() => handleSelectStory(story)}
-                  disabled={false}
+                  disabled={isLoading}
                   className={`relative p-8 rounded-xl border text-left transition-all duration-300 flex flex-col justify-between h-48 group overflow-hidden ${
                     isRead
                       ? "bg-[var(--input-bg)] border-transparent text-[var(--muted)]"
@@ -149,13 +173,13 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
                     </h3>
                     <div className="w-8 h-1 bg-[var(--border)] group-hover:bg-[var(--primary)] transition-colors rounded-full" />
                   </div>
-                  
+
                   {isRead && (
                     <span className="absolute bottom-6 right-6 text-xs font-bold uppercase tracking-widest text-[var(--muted)] border border-[var(--border)] px-3 py-1 rounded-full">
                       Completed
                     </span>
                   )}
-                  
+
                   {!isRead && (
                     <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[var(--primary)]/5 rounded-full group-hover:scale-150 transition-transform duration-500" />
                   )}
@@ -180,7 +204,6 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
     );
   }
 
-  const currentSegment = segments[currentSegmentIndex];
   const progress = segments.length > 0 ? ((currentSegmentIndex + 1) / segments.length) * 100 : 0;
 
   return (
@@ -194,24 +217,22 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
             {currentStory?.title}
           </h1>
         </div>
-        <div className="font-mono text-sm font-medium text-[var(--foreground)] tabular-nums">
-          {formatTime(timeLeft)}
-        </div>
+        <CountdownTimer seconds={timeLeft} label="Story reading time remaining" />
       </div>
 
       <div className="h-1 w-full bg-[var(--input-bg)] shrink-0">
-        <div 
+        <div
           className="h-full bg-[var(--primary)] transition-all duration-500 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
 
-      <div 
+      <div
         id="story-scroll-container"
         className="flex-1 overflow-y-auto relative bg-[var(--background)] scroll-smooth"
       >
         <div className="min-h-full w-full max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12 flex flex-col items-center">
-          
+
           {!currentSegment ? (
             <div className="flex flex-col items-center justify-center h-64 text-[var(--muted)] animate-pulse">
               <p>Loading story segment...</p>
@@ -236,7 +257,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
           >
             Go to Other Stories
           </button>
-          
+
           <div className="text-[10px] text-[var(--muted)] uppercase tracking-widest hidden md:block">
              {currentSegmentIndex + 1} <span className="mx-1 opacity-30">/</span> {segments.length}
           </div>

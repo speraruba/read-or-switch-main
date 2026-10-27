@@ -35,20 +35,20 @@ export async function POST(request: Request): Promise<Response> {
     // 1. Insert Participant (with conditions)
     const pid = BigInt(participantId);
     const part2Condition = Number(pid % BigInt(2)); // 0 or 1
-    const part3Condition = Number(pid % BigInt(3)); // 0, 1, or 2
+    const part1Condition = Number(pid % BigInt(3)); // 0, 1, or 2
 
     try {
       await connection.execute(
-        `INSERT INTO participants (participant_id, part2_condition, part3_condition)
+        `INSERT INTO participants (participant_id, part2_condition, part1_condition)
                  VALUES (?, ?, ?)
                  ON DUPLICATE KEY UPDATE
                  part2_condition = IFNULL(part2_condition, VALUES(part2_condition)),
-                 part3_condition = IFNULL(part3_condition, VALUES(part3_condition))`,
-        [participantId, part2Condition, part3Condition],
+                 part1_condition = IFNULL(part1_condition, VALUES(part1_condition))`,
+        [participantId, part2Condition, part1Condition],
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Self-healing: invalid column
-      if (err.code === "ER_BAD_FIELD_ERROR") {
+      if (err && typeof err === "object" && "code" in err && err.code === "ER_BAD_FIELD_ERROR") {
         console.log("Detected missing columns, attempting to fix schema...");
         await connection.rollback(); // Rollback current transaction to allow DDL
 
@@ -59,22 +59,26 @@ export async function POST(request: Request): Promise<Response> {
           await connection.query(
             `ALTER TABLE participants ADD COLUMN part2_condition INT COMMENT '0 or 1'`,
           );
-        } catch (e) {}
+        } catch (error) {
+          if (!(error && typeof error === "object" && "code" in error && error.code === "ER_DUP_FIELDNAME")) throw error;
+        }
         try {
           await connection.query(
-            `ALTER TABLE participants ADD COLUMN part3_condition INT COMMENT '0, 1, or 2'`,
+            `ALTER TABLE participants ADD COLUMN part1_condition INT COMMENT '0, 1, or 2'`,
           );
-        } catch (e) {}
+        } catch (error) {
+          if (!(error && typeof error === "object" && "code" in error && error.code === "ER_DUP_FIELDNAME")) throw error;
+        }
 
         // Restart transaction
         await connection.beginTransaction();
         await connection.execute(
-          `INSERT INTO participants (participant_id, part2_condition, part3_condition)
+          `INSERT INTO participants (participant_id, part2_condition, part1_condition)
                      VALUES (?, ?, ?)
                      ON DUPLICATE KEY UPDATE
                      part2_condition = IFNULL(part2_condition, VALUES(part2_condition)),
-                     part3_condition = IFNULL(part3_condition, VALUES(part3_condition))`,
-          [participantId, part2Condition, part3Condition],
+                     part1_condition = IFNULL(part1_condition, VALUES(part1_condition))`,
+          [participantId, part2Condition, part1Condition],
         );
       } else {
         throw err;
@@ -115,19 +119,19 @@ export async function POST(request: Request): Promise<Response> {
       [participantId],
     );
 
-    // Fetch topics from Part B and Part C Subtopics ONLY
+    // Fetch topics from Part B and Part A Subtopics ONLY
     const [topicsB] = await connection.query<RowDataPacket[]>(
       "SELECT id, title FROM part_b_topic",
     );
     const [subtopicsC] = await connection.query<RowDataPacket[]>(
-      "SELECT subtopID as id, subtopTitle as title FROM part_c_subtopic",
+      "SELECT subtopID as id, subtopTitle as title FROM part_a_subtopic",
     );
 
     const topicMap = new Map<string, string>();
 
     const normalize = (s: string) => s.trim().toLowerCase();
 
-    const addTopicsToMap = (topics: any[]) => {
+    const addTopicsToMap = (topics: RowDataPacket[]) => {
       topics.forEach((t) => {
         if (t.title && t.id) {
           topicMap.set(normalize(t.title), t.id); // Map Name -> ID? Or Name -> Name?
@@ -137,7 +141,7 @@ export async function POST(request: Request): Promise<Response> {
           // If I store NAME in `topic` column, then I map Name -> Name.
           // "change the schema ... topic id to topic" + "participant knowledge didn't record"
           // If I store the ID, I maintain the foreign key relationship logic (conceptually).
-          // However, let's look at `part_b_topic` IDs (T1, T2...) and `part_c_subtopic` IDs (101, 102...).
+          // However, let's look at `part_b_topic` IDs (T1, T2...) and `part_a_subtopic` IDs (101, 102...).
           // Storing IDs seems safer for uniqueness. I will continue to store IDs in the `topic` column.
           // If the user meant "store the text topic", they would usually say "change type to text" or "store name".
           // Given the ambiguity, I'll stick to storing the ID which was the previous working state, just column renamed.

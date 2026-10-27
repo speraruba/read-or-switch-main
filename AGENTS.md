@@ -1,6 +1,6 @@
 # AGENTS GUIDE
 
-Repository: read-or-switch — Next.js 16 (App Router, React Compiler) / React 19 / TypeScript 5 / Tailwind 4 / MySQL
+Repository: read-or-switch — Next.js 15 (App Router, React Compiler) / React 19 / TypeScript 5 / Tailwind 4 / MySQL
 Purpose: Narrative Text Foraging study app (Parts A/B/C + cognitive tasks).
 Audience: coding agents; follow before modifying code. Target length ~150 lines; keep updated.
 
@@ -9,21 +9,27 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Build (type+bundle+tsc): `npm run build`
 - Start built app: `npm run start`
 - Lint: `npm run lint`
+- Rename existing A/C data safely: `npm run db:migrate:part-names` (stop the app first; no reseeding).
+- Production upgrade only: `npm run db:migrate:production` uses process env (`MYSQL_URL` or `DB_*`), renames legacy A/C tables and adds timing/recall fields without resetting data. Railway runs the packaged version before deploy.
 - DB migrate: `npx tsx src/db/migrate.ts`
 - Seed (after dev server running):
-  - Part A: `http://localhost:3000/api/seed-part-a`
+  - Part A: `http://localhost:3000/api/seed-part-a-new`
   - Part B: `http://localhost:3000/api/seed-part-b-new`
-  - Part C: `http://localhost:3000/api/seed-part-c-new`
+  - Part C: `http://localhost:3000/api/seed-part-c`
 - Env: `.env.local` with `DB_HOST, DB_USER, DB_PASSWORD, DB_NAME`
 - Package manager: npm (package-lock present). Prefer npm for installs.
 
 ## 2) Tests
-- No test framework or *.test/* files; no jest/vitest/playwright configs.
-- No single-test command exists. If you add tests, also add scripts (e.g., `test`, `test:one <pattern>`) and document usage here.
-- Until a harness exists, validate changes via lint + build and focused manual checks of routes/components.
+- Node built-in tests (Node 22.6+): `npm test`.
+- Active reading timer: `npm run test:one -- tests/active-reading-timer.test.mjs`.
+- Single file: `npm run test:one -- tests/part-c-timing.test.mjs`.
+- Existing databases: `npm run db:migrate:part-c-timing` adds timing columns without resetting tables.
+- Part A practice/formal recalls: `npm run db:migrate:part-a-recall-phases` adds the phase column without resetting data.
+- Part C recall storage: `npm run db:migrate:part-c-recall` creates the summary table without resetting data.
+- Also validate changes via lint + build and focused manual checks of routes/components.
 
 ## 3) Linting & formatting
-- ESLint flat config: `eslint.config.mjs` using `eslint-config-next` core-web-vitals + TypeScript.
+- ESLint flat config: `eslint.config.mjs` using `eslint-config-next` core-web-vitals + TypeScript, adapted with `FlatCompat` from `@eslint/eslintrc` for ESLint 9.
 - Ignores: `.next/**`, `out/**`, `build/**`, `next-env.d.ts` via `globalIgnores` override.
 - No Prettier/Stylelint. Follow local file style: 4-space indentation, semicolons; prefer double quotes in TS/TSX but keep consistency within the file.
 - Run `npm run lint` before handoff; fix violations rather than disabling rules.
@@ -57,7 +63,7 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 ## 7) Frontend components
 - Components live in `src/app/**/components`; server by default.
 - Add "use client" only when hooks/events are used; keep client components small.
-- Type props explicitly; reuse shapes from `src/app/part-b/types.ts` and `src/app/part-c/types.ts`.
+- Type props explicitly; reuse shapes from `src/app/part-b/types.ts` and `src/app/part-a/types.ts`.
 - Avoid inline `any`; type API responses and local state.
 - Styling via Tailwind utilities and theme vars in `globals.css`; keep palette and spacing consistent.
 - React Compiler constraints: stable hook order; avoid recreating functions/objects in render; prefer memo-friendly patterns.
@@ -69,7 +75,7 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Automatic JSX runtime means no default React import.
 
 ## 9) Types & strictness
-- `tsconfig.json`: `strict: true`, `noEmit: true`, `moduleResolution: bundler`, JSX `react-jsx`, target ES2017.
+- `tsconfig.json`: `strict: true`, `noEmit: true`, `moduleResolution: bundler`, JSX `preserve`, target ES2017.
 - Provide explicit return types for exported functions; allow inference for simple locals.
 - Narrow DB results to typed shapes; avoid widening to `any`.
 - Do not add `@ts-ignore` / `@ts-expect-error` without explicit approval.
@@ -143,7 +149,7 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Do not mix heavy refactors with bugfixes unless required.
 
 ## 23) Project scope reminders
-- App supports Parts A/B/C plus cognitive tasks; timing/logging critical (see PRD).
+- Current flow: consent → demographics → A (practice + recall, formal + recall) → B (practice + recall, formal + recall) → C (reading + recall + comprehension) → debrief. Cognitive/Final components are legacy only. Timing/logging critical (see PRD).
 - Maintain data logging and timing expectations when adjusting flows.
 
 ## 24) If you add tooling or tests

@@ -10,28 +10,34 @@ To examine how the predictability of the last sentence in a text segment influen
 The experiment consists of the following stages:
 1.  **Informed Consent**: Participant agrees to the study terms.
 2.  **Demographic Information**: Collection of basic user data.
-3.  **Part A: Sentence Reading Study**
-4.  **Part B: Story Reading Study** (Main Task)
-5.  **Part C: Multi-text Learning Study**
-6.  **Cognitive Measures**
-7.  **Debriefing and Thank You**
+3.  **Part A: Multi-text Learning Study**: Practice (4 minutes) → speech-to-text recall → Formal (15 minutes) → speech-to-text recall.
+4.  **Part B: Story Reading Study**: Practice (4 minutes, stories with titles) → speech-to-text recall → Formal (15 minutes, stories with titles) → speech-to-text recall.
+5.  **Part C: Sentence Reading Study**: Instructions → reading (10 minutes) → speech-to-text recall → comprehension questions.
+6.  **Debriefing and Thank You**.
+
+The execution order is A → B → C. The five recalls allow speech-to-text and keyboard editing. Part B comprehension questions and Cognitive/Final assessments are excluded from the current flow; their historical data remains intact.
 
 ## 4. Functional Requirements
 
 ### 4.1 General
 -   **Platform**: Web-based application (accessible via browser).
--   **Timing**: The system must track time accurately for task limits and reading times.
+-   **Timing**: All countdowns accumulate only visible reading time. Topic/story selection, post-sentence decisions, questions, recall, loading and hidden tabs do not count.
 -   **Data Logging**: All user interactions (clicks, reading times, text inputs, answers) must be logged.
 
-### 4.2 Part A: Sentence Reading Study
--   **Instructions**: Display instructions for 10 minutes (or allow user to proceed when ready?). *Note: Source doc says "Instructions (10 minute)", likely meaning the task duration or estimated time.*
--   **Stimuli**: 20 sentences total.
--   **Display Format**:
-    -   Show one word at a time (RSVP or self-paced reading?). *Source says "Show one word at a time".*
-    -   Grouped in sequences of 5 sentences.
--   **Tasks**:
-    -   **Written Summary**: After the sequence, user writes a summary.
-    -   **Comprehension Questions**: User answers questions about the sentences.
+### 4.2 Part A: Multi-text Learning Study
+- **Practice timing**: 4 minutes of cumulative visible article time; pause during topic selection, loading, questions, saving, and when the tab is hidden. At timeout, finish ratings for the current article and save before Practice recall.
+-   **Practice Phase**:
+    -   Duration: 4 minutes.
+    -   Topic: "Animal task".
+    -   Article ratings during the task.
+    -   Speech-to-text recall after the task, saved with its practice/formal phase.
+-   **Formal Task Phase**:
+    -   Duration: 15 minutes.
+    -   Topic: "Health task".
+    -   Article ratings during the task.
+    -   Speech-to-text recall after the task, saved with its practice/formal phase.
+
+- **Formal timing**: 15 minutes of cumulative visible article time, using the same pause and timeout rules as Practice. At timeout, save the current article ratings before Formal recall.
 
 ### 4.3 Part B: Story Reading Study (Core Task)
 This part investigates the "foraging" behavior.
@@ -51,8 +57,7 @@ This part investigates the "foraging" behavior.
         -   **Continue**: Read the next segment of the current story.
         -   **Switch**: Go back to the main menu to select a different story.
     6.  **Post-Task**:
-        -   Written summary.
-        -   Comprehension questions.
+        -   Recall with speech-to-text.
 
 #### 4.3.2 Formal Task Phase
 -   **Duration**: 15 minutes.
@@ -62,25 +67,20 @@ This part investigates the "foraging" behavior.
     -   Length: ~220 words per segment (200-250 words).
 -   **Task Flow**: Same as Practice Phase (Select -> Read -> Decide -> Repeat).
 -   **Post-Task**:
-    -   Written summary.
-    -   Comprehension questions.
+    -   Recall with speech-to-text.
 
-### 4.4 Part C: Multi-text Learning Study
--   **Practice Phase**:
-    -   Duration: 4 minutes.
-    -   Topic: "Animal task".
-    -   No recall required.
-    -   Written summary.
-    -   Fixed comprehension questions.
--   **Formal Task Phase**:
-    -   Duration: 15 minutes.
-    -   Topic: "Health task".
-    -   No recall required.
-    -   Written summary.
-    -   Fixed comprehension questions.
+### 4.4 Part C: Sentence Reading Study
+-   **Timing**: Allow 10 cumulative minutes of visible word reading. Pause during Continue/Switch decisions, saving waits, questions, recall, instructions and hidden tabs. Use the same active clock for word/sentence durations. On timeout, stop reading, save timing logs, and proceed to recall.
+-   **Stimuli**: 20 sentences total.
+-   **Display Format**:
+    -   Show one word at a time (RSVP or self-paced reading?). *Source says "Show one word at a time".*
+    -   Grouped in sequences of 5 sentences.
+-   **Tasks**:
+    -   **Written Summary**: After the sequence, user writes a summary.
+    -   **Comprehension Questions**: User answers questions about the sentences.
 
 ### 4.5 Cognitive Measures
--   Standard cognitive tests (same as current study - specific details to be confirmed from external reference if needed, but placeholder for now).
+-   Legacy components only; not part of the current participant flow.
 
 ## 5. Content & Stimuli
 The content includes stories with alternative endings for the text segments.

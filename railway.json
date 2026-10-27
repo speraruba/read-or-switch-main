@@ -2,10 +2,13 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "RAILPACK",
-    "buildCommand": "bun run build && cp -r public .next/standalone/ 2>/dev/null || true && cp -r .next/static .next/standalone/.next/"
+    "buildCommand": "npm run build && node scripts/package-standalone.mjs"
   },
   "deploy": {
+    "preDeployCommand": ["node .next/standalone/src/db/upgrade-production.mjs"],
     "startCommand": "HOSTNAME=0.0.0.0 node .next/standalone/server.js",
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 120,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
