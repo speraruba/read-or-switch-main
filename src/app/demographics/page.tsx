@@ -39,9 +39,6 @@ function DemographicsForm() {
     const [hasStarted, setHasStarted] = useState(false);
 
     const handleStart = () => {
-        document.documentElement.requestFullscreen().catch((e) => {
-            console.warn("Full screen request failed", e);
-        });
         setHasStarted(true);
     };
 
@@ -123,13 +120,13 @@ function DemographicsForm() {
                 <div className="max-w-md w-full glass-panel p-10 rounded-2xl shadow-lg text-center">
                     <h1 className="text-2xl font-bold mb-4 text-[var(--foreground)]">Welcome</h1>
                     <p className="text-[var(--muted)] mb-8">
-                        Please click the button below to enter full-screen mode and begin the study.
+                        Please click the button below to begin the study.
                     </p>
                     <button
                         onClick={handleStart}
                         className="bg-[var(--primary)] text-[var(--primary-fg)] px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-all focus-ring shadow-sm w-full"
                     >
-                        Enter Full Screen & Begin
+                        Begin Study
                     </button>
                 </div>
             </div>

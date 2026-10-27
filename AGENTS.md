@@ -26,6 +26,8 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Existing databases: `npm run db:migrate:part-c-timing` adds timing columns without resetting tables.
 - Part A practice/formal recalls: `npm run db:migrate:part-a-recall-phases` adds the phase column without resetting data.
 - Part C recall storage: `npm run db:migrate:part-c-recall` creates the summary table without resetting data.
+- Participant details: `npm run db:migrate:participant-details` adds the name field and removes the placeholder email default, preserving existing records. Entry requires ID, name, email, and consent.
+- Registration validation: `npm run test:one -- tests/participant-registration.test.mjs`.
 - Also validate changes via lint + build and focused manual checks of routes/components.
 
 ## 3) Linting & formatting

@@ -3,15 +3,34 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { getApiPath } from "@/lib/api";
+
 export default function Home() {
   const [participantId, setParticipantId] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [consented, setConsented] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (consented && participantId) {
-      router.push(`/demographics?participant_id=${participantId}`);
+    if (!consented || !participantId.trim() || !name.trim() || !email.trim() || isSubmitting) return;
+    setIsSubmitting(true);
+    setError("");
+    try {
+      const response = await fetch(getApiPath("/api/participants"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ participantId, name, email, consented }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Your details could not be saved. Please try again.");
+      router.push(`/demographics?participant_id=${encodeURIComponent(data.participantId)}`);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Your details could not be saved. Please try again.");
+      setIsSubmitting(false);
     }
   };
 
@@ -71,7 +90,7 @@ export default function Home() {
           <section className="space-y-3">
             <h2 className="text-base font-semibold text-[var(--foreground)]">Will my study-related information be kept confidential?</h2>
             <p className="text-sm leading-relaxed text-[var(--foreground)]">
-              Faculty, students, and staff who may see your information will maintain confidentiality to the extent of laws and university policies. No personal identifiers will be collected. Participation is fully anonymous.
+              Faculty, students, and staff who may see your information will maintain confidentiality to the extent of laws and university policies. Your participant ID, name, and email address will be collected and stored with your study responses.
             </p>
           </section>
 
@@ -143,13 +162,26 @@ export default function Home() {
             <input
               id="participantId"
               name="participantId"
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{1,19}"
+              maxLength={19}
+              disabled={isSubmitting}
               required
               value={participantId}
               onChange={(e) => setParticipantId(e.target.value)}
               className="block w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] shadow-sm focus-ring placeholder-[var(--muted)] transition-colors hover:border-[var(--foreground)]"
               placeholder="Enter your assigned ID"
             />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="participantName" className="block text-sm font-medium text-[var(--foreground)]">Full name</label>
+            <input id="participantName" name="name" type="text" autoComplete="name" required maxLength={255} disabled={isSubmitting} value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" className="block w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] shadow-sm focus-ring" />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="participantEmail" className="block text-sm font-medium text-[var(--foreground)]">Email</label>
+            <input id="participantEmail" name="email" type="email" autoComplete="email" required maxLength={255} disabled={isSubmitting} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email address" className="block w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--foreground)] shadow-sm focus-ring" />
           </div>
 
           <label
@@ -162,6 +194,7 @@ export default function Home() {
                 name="consent"
                 type="checkbox"
                 required
+                disabled={isSubmitting}
                 checked={consented}
                 onChange={(e) => setConsented(e.target.checked)}
                 className="h-5 w-5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/20 cursor-pointer"
@@ -177,12 +210,13 @@ export default function Home() {
             </div>
           </label>
 
+          {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
           <button
             type="submit"
-            disabled={!consented || !participantId}
+            disabled={isSubmitting || !consented || !participantId.trim() || !name.trim() || !email.trim()}
             className="flex w-full justify-center rounded-lg bg-[var(--primary)] px-6 py-3 text-base font-medium text-[var(--primary-fg)] shadow-sm hover:opacity-90 active:scale-[0.99] transition-all focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
           >
-            Submit
+            {isSubmitting ? "Saving…" : "Submit"}
           </button>
         </form>
       </div>

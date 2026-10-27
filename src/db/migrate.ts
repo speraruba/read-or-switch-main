@@ -581,6 +581,18 @@ async function main() {
     try {
         connection = await mysql.createConnection(process.env.MYSQL_URL ? { uri: process.env.MYSQL_URL } : dbConfig);
         console.log('Connected.');
+        if (process.argv.includes("--participant-details")) {
+            const [columns] = await connection.execute<RowDataPacket[]>(
+                "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'participants'"
+            );
+            if (!columns.length) throw new Error("participants table is missing");
+            if (!columns.some(column => column.COLUMN_NAME === "name")) {
+                await connection.query("ALTER TABLE participants ADD COLUMN name VARCHAR(255) NULL AFTER participant_id");
+            }
+            await connection.query("ALTER TABLE participants MODIFY COLUMN email VARCHAR(255) NULL DEFAULT NULL");
+            console.log("Participant name and email fields ready; existing records preserved.");
+            return;
+        }
         if (process.argv.includes("--part-a-recall-phases")) {
             const [columns] = await connection.execute<RowDataPacket[]>(
                 "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'part_a_summaries' AND COLUMN_NAME = 'phase'"

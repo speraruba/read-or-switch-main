@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 // Upgrade an existing installation only. Never execute schema.sql or seeders.
 const steps = [
     [fileURLToPath(new URL("./rename-study-parts.mjs", import.meta.url))],
+    ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--participant-details"],
     ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--part-c-timing"],
     ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--part-c-recall"],
     ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--part-a-recall-phases"],

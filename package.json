@@ -14,7 +14,8 @@
     "db:migrate:part-a-recall-phases": "node --experimental-strip-types src/db/migrate.ts --part-a-recall-phases",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "test:one": "node --experimental-strip-types --test",
-    "db:migrate:production": "node src/db/upgrade-production.mjs"
+    "db:migrate:production": "node src/db/upgrade-production.mjs",
+    "db:migrate:participant-details": "node --experimental-strip-types src/db/migrate.ts --participant-details"
   },
   "dependencies": {
     "csv-parse": "^6.1.0",

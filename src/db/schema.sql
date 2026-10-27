@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS participants (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     part2_condition INT COMMENT '0 or 1',
     part1_condition INT COMMENT '0, 1, or 2',
-    email VARCHAR(255) NOT NULL DEFAULT 'testing@illionis.edu',
+    name VARCHAR(255) NULL,
+    email VARCHAR(255) NULL DEFAULT NULL,
     consent BOOLEAN NOT NULL DEFAULT TRUE
 );
 

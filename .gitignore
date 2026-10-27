@@ -43,3 +43,6 @@ yarn-error.log*
 next-env.d.ts
 GEMINI.md
 AGENTS.md
+
+# Private database backups
+/database-backups/
