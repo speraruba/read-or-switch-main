@@ -10,7 +10,7 @@ try {
     if (error.code !== "ENOENT") throw error;
 }
 await mkdir(`${destination}/src/db`, { recursive: true });
-for (const name of ["upgrade-production.mjs", "rename-study-parts.mjs", "migrate.ts"]) {
+for (const name of ["upgrade-production.mjs", "rename-study-parts.mjs", "repair-question-options.mjs", "migrate.ts"]) {
     await cp(`src/db/${name}`, `${destination}/src/db/${name}`);
 }
 console.log("Standalone app, assets and non-destructive migrations packaged.");

@@ -7,6 +7,7 @@ const steps = [
     ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--part-c-timing"],
     ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--part-c-recall"],
     ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--part-a-recall-phases"],
+    [fileURLToPath(new URL("./repair-question-options.mjs", import.meta.url))],
 ];
 
 for (const args of steps) {

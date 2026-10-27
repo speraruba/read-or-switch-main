@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import type { RowDataPacket } from "mysql2";
 
 import { query } from "@/lib/db";
+import { isAllowedRequestOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request): Promise<NextResponse> {
     const origin = request.headers.get("origin");
-    if (origin && origin !== new URL(request.url).origin) {
+    if (!isAllowedRequestOrigin(origin, request.url, process.env.RAILWAY_PUBLIC_DOMAIN)) {
         return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
     }
     const apiKey = process.env.OPENAI_API_KEY;

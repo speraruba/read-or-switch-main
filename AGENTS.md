@@ -10,7 +10,7 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Start built app: `npm run start`
 - Lint: `npm run lint`
 - Rename existing A/C data safely: `npm run db:migrate:part-names` (stop the app first; no reseeding).
-- Production upgrade only: `npm run db:migrate:production` uses process env (`MYSQL_URL` or `DB_*`), renames legacy A/C tables and adds timing/recall fields without resetting data. Railway runs the packaged version before deploy.
+- Production upgrade only: `npm run db:migrate:production` uses process env (`MYSQL_URL` or `DB_*`), renames legacy A/C tables, adds timing/recall fields, and repairs the original placeholder question options without resetting data. Railway runs the packaged version before deploy.
 - DB migrate: `npx tsx src/db/migrate.ts`
 - Seed (after dev server running):
   - Part A: `http://localhost:3000/api/seed-part-a-new`
