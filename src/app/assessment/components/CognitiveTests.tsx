@@ -1,8 +1,8 @@
 "use client";
-import { getApiPath } from "@/lib/api";
-
 import { useRef, useState } from "react";
 import type { ChangeEvent, MouseEvent } from "react";
+
+import { getApiPath } from "@/lib/api";
 
 interface CognitiveTestsProps {
     participantId: string;
@@ -60,12 +60,8 @@ const LETTER_COMPARISON_ROUNDS: Record<number, Array<{ left: string; right: stri
 };
 
 
-// Fetched dynamically
-// const vocabQuestions: VocabQuestion[] = [...];
-
-
 export default function CognitiveTests({ participantId, onComplete }: CognitiveTestsProps): React.JSX.Element | null {
-    const [subPhase, setSubPhase] = useState<"intro" | "letter" | "vocab">("intro");
+    const [subPhase, setSubPhase] = useState<"letter-instructions" | "letter" | "vocab-instructions" | "vocab">("letter-instructions");
     const savingRef = useRef(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isLoadingVocab, setIsLoadingVocab] = useState(false);
@@ -83,14 +79,13 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
     const [vocabData, setVocabData] = useState<VocabResponseData[]>([]);
 
     // Initialize timing when entering a phase
-    const handleIntroNext = (event: MouseEvent<HTMLButtonElement>) => {
+    const handleLetterStart = (event: MouseEvent<HTMLButtonElement>) => {
         setSubPhase("letter");
         setStartTime(event.timeStamp);
+        window.scrollTo(0, 0);
     };
 
-    // Fetch vocab questions when subPhase changes to vocab
-    // Or pre-fetch. Let's fetch when entering vocab phase or on mount (if we want them ready).
-    // Better to fetch when entering vocab phase to ensure latest.
+    // Load questions on the rules page; timing starts only when the task starts.
     const fetchVocabQuestions = async () => {
         setIsLoadingVocab(true);
         setVocabError(false);
@@ -100,13 +95,19 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
             const data = await res.json();
             if (!Array.isArray(data.questions) || data.questions.length === 0) throw new Error("Vocabulary questions are unavailable");
             setVocabQuestions(data.questions);
-            setStartTime(performance.now());
         } catch (e) {
             console.error("Failed to fetch vocab questions", e);
             setVocabError(true);
         } finally {
             setIsLoadingVocab(false);
         }
+    };
+
+    const handleVocabStart = (event: MouseEvent<HTMLButtonElement>) => {
+        if (isLoadingVocab || vocabError || vocabQuestions.length === 0 || savingRef.current) return;
+        setSubPhase("vocab");
+        setStartTime(event.timeStamp);
+        window.scrollTo(0, 0);
     };
 
     const handleLetterResponse = (event: MouseEvent<HTMLButtonElement>, absoluteId: number, val: "S" | "D", problem: { left: string, right: string, answer: "S" | "D" }) => {
@@ -154,7 +155,9 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                     throw new Error(`Server responded with ${res.status}`);
                 }
 
-                setSubPhase("vocab");
+                setSubPhase("vocab-instructions");
+                setStartTime(0);
+                window.scrollTo(0, 0);
                 await fetchVocabQuestions();
             } catch (e) {
                 console.error(e);
@@ -212,25 +215,40 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
         }
     };
 
-    if (subPhase === "intro") {
+    if (subPhase === "letter-instructions" || subPhase === "vocab-instructions") {
+        const isLetter = subPhase === "letter-instructions";
         return (
-            <div className="max-w-xl mx-auto glass-panel p-10 rounded-xl shadow-sm mt-12 text-center">
-                <h2 className="text-3xl font-semibold mb-6 tracking-tight text-[var(--foreground)]">Cognitive Tests</h2>
-                <div className="mb-8 text-[var(--muted)] text-base leading-relaxed">
-                    <p className="mb-4">You will now complete two short cognitive tests.</p>
-                    <ul className="space-y-2">
-                        <li>1. Letter Comparison</li>
-                        <li>2. Vocabulary Test</li>
-                    </ul>
+            <section aria-labelledby="task-instructions-title" className="max-w-2xl mx-auto glass-panel p-6 sm:p-10 rounded-xl shadow-sm mt-8 sm:mt-12">
+                <p className="text-sm font-medium text-[var(--muted)] mb-3">Cognitive Test · Task {isLetter ? "1" : "2"} of 2</p>
+                <h2 id="task-instructions-title" className="text-3xl font-semibold mb-6 tracking-tight text-[var(--foreground)]">{isLetter ? "Letter Comparison" : "Vocab Test"}</h2>
+                <h3 className="font-semibold mb-3">Instructions</h3>
+                <div className="mb-8 text-[var(--muted)] text-base leading-relaxed space-y-4">
+                    {isLetter ? <>
+                        <p>Compare each pair of letter strings and decide whether they are exactly the same or different.</p>
+                        <ul className="list-disc pl-5 space-y-2">
+                            <li>Select <strong>S (Same)</strong> if every letter matches in the same order.</li>
+                            <li>Select <strong>D (Different)</strong> if any letter or its position is different.</li>
+                        </ul>
+                        <p>There are two rounds of 10 pairs. Answer every pair, then select <strong>Next Round</strong> or <strong>Complete Letter Comparison</strong>.</p>
+                        <p>Work as quickly and accurately as you can.</p>
+                    </> : <>
+                        <p>This task tests your knowledge of word meanings. For each word, select the option with the same or nearly the same meaning.</p>
+                        <p>Choose one answer for each word. If you are unsure, select <strong>Not sure about the answer</strong> instead of guessing.</p>
+                        <p>Answer every question, then select <strong>Finish Vocab Test</strong>.</p>
+                    </>}
+                    <p className="text-sm">Take your time reading these instructions. Timing begins when you select the start button below.</p>
                 </div>
+                {!isLetter && isLoadingVocab && <p className="mb-4 text-sm" role="status">Loading vocabulary questions…</p>}
+                {!isLetter && vocabError && <div className="mb-4" role="alert"><p>Vocabulary questions could not be loaded.</p><button type="button" onClick={fetchVocabQuestions} className="mt-2 underline focus-ring">Retry loading questions</button></div>}
                 <button
                     type="button"
-                    onClick={handleIntroNext}
-                    className="bg-[var(--primary)] text-[var(--primary-fg)] px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-all focus-ring"
+                    onClick={isLetter ? handleLetterStart : handleVocabStart}
+                    disabled={!isLetter && (isSaving || isLoadingVocab || vocabError || vocabQuestions.length === 0)}
+                    className="bg-[var(--primary)] text-[var(--primary-fg)] px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-all focus-ring disabled:opacity-50"
                 >
-                    Start Tests
+                    {isLetter ? "Start Letter Comparison" : "Start Vocab Test"}
                 </button>
-            </div>
+            </section>
         );
     }
 
@@ -242,21 +260,11 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
         return (
             <div className="max-w-6xl mx-auto mt-16 px-4 pb-20">
                 <div className="text-center mb-12 space-y-3">
+                    <p className="text-sm font-medium text-[var(--muted)]">Cognitive Test · Task 1 of 2</p>
                     <h2 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">
                         Letter Comparison <span className="font-normal text-[var(--muted)] mx-2">/</span> Round {currentRound}
                     </h2>
-                    <div className="text-[var(--muted)] text-base max-w-2xl mx-auto space-y-3">
-                        <p>
-                            And the same thing again, you will be asked to determine whether two letter strings are exactly the same or different.
-                        </p>
-                        <p>
-                            If these two letter strings are exactly the same, please select &quot;S&quot;. If they are different, please select &quot;D&quot;.
-                        </p>
-                        <p>
-                            Please do as fast as you can. Once you finish the task, please press the &quot;DONE&quot; button. We will record the time you complete the task.
-                        </p>
-                        <p className="font-semibold text-[var(--foreground)] pt-2">Ready?</p>
-                    </div>
+                    <p className="text-[var(--muted)]">S = Same · D = Different. Answer every pair before continuing.</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -341,7 +349,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                             {isSaving ? "Saving…" : currentRound < Object.keys(LETTER_COMPARISON_ROUNDS).length ? (
                                 <>Next Round <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></>
                             ) : (
-                                <>Complete Section <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></>
+                                <>Complete Letter Comparison <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></>
                             )}
                         </button>
                     </div>
@@ -356,22 +364,11 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
         return (
             <div className="max-w-6xl mx-auto glass-panel p-10 rounded-xl shadow-sm mt-12">
                 <div className="mb-8 border-l-4 border-[var(--foreground)] pl-4">
-                    <h2 className="text-2xl font-semibold mb-4 text-[var(--foreground)]">Vocabulary Task</h2>
-                    <div className="text-[var(--muted)] text-lg space-y-4">
-                        <p>
-                            This is a test of your knowledge of word meanings. One of the five words has the same meaning or nearly the same meaning as the word above the five words.
-                        </p>
-                        <p>
-                            Please select the best answer.
-                        </p>
-                        <p>
-                            Please select &quot;Not sure about the answer&quot; if you are not sure about the correct answer. It will not be your advantage to guess.
-                        </p>
-                    </div>
+                    <p className="text-sm font-medium text-[var(--muted)] mb-3">Cognitive Test · Task 2 of 2</p>
+                    <h2 className="text-2xl font-semibold mb-4 text-[var(--foreground)]">Vocab Test</h2>
+                    <p className="text-[var(--muted)]">Choose the closest meaning, or select &quot;Not sure about the answer&quot; if you are unsure.</p>
                 </div>
 
-                {isLoadingVocab && <p role="status">Loading vocabulary questions…</p>}
-                {vocabError && <div role="alert"><p>Vocabulary questions could not be loaded.</p><button type="button" onClick={fetchVocabQuestions} className="my-4 underline focus-ring">Retry loading questions</button></div>}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {vocabQuestions.map((q) => (
                         <div key={q.id} className="border border-[var(--border)] p-5 rounded-lg bg-[var(--surface)]">
@@ -398,7 +395,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
 
                 <div className="text-center mt-12">
                     <button type="button" onClick={handleVocabSubmit} disabled={isSaving || isLoadingVocab || vocabError || vocabQuestions.length === 0 || !vocabQuestions.every(q => vocabResponses[q.id])} className="bg-[var(--primary)] text-[var(--primary-fg)] px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-all focus-ring shadow-sm disabled:opacity-50">
-                        {isSaving ? "Saving…" : "Finish Vocabulary Test"}
+                        {isSaving ? "Saving…" : "Finish Vocab Test"}
                     </button>
                 </div>
             </div>
