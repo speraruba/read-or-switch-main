@@ -13,7 +13,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-        return NextResponse.json({ error: "Voice input is not configured yet. Please contact the researcher or use typing." }, { status: 503 });
+        return NextResponse.json({ error: "Voice input is not configured yet. Please contact the researcher." }, { status: 503 });
     }
     let body: unknown;
     try {
@@ -54,7 +54,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         });
         if (!tokenResponse.ok) {
             console.error("Failed to create transcription credentials:", tokenResponse.status);
-            return NextResponse.json({ error: "Voice input could not connect. Please contact the researcher or use typing." }, { status: 502 });
+            return NextResponse.json({ error: "Voice input could not connect. Please contact the researcher." }, { status: 502 });
         }
         const token: unknown = await tokenResponse.json();
         if (!token || typeof token !== "object" || !("value" in token) || typeof token.value !== "string") {
@@ -68,11 +68,11 @@ export async function POST(request: Request): Promise<NextResponse> {
         });
         if (!response.ok) {
             console.error("Failed to create transcription session:", response.status);
-            return NextResponse.json({ error: "Voice input could not connect. Please try again or use typing." }, { status: 502 });
+            return NextResponse.json({ error: "Voice input could not connect. Please try again or contact the researcher." }, { status: 502 });
         }
         return NextResponse.json({ sdp: await response.text() }, { headers: { "Cache-Control": "no-store" } });
     } catch (error) {
         console.error("Failed to create transcription session:", error instanceof Error ? error.name : "Unknown error");
-        return NextResponse.json({ error: "Voice input is temporarily unavailable. Please try again or use typing." }, { status: 500 });
+        return NextResponse.json({ error: "Voice input is temporarily unavailable. Please try again or contact the researcher." }, { status: 500 });
     }
 }

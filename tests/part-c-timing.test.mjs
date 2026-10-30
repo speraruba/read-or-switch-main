@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { createLogQueue, createReadingClock, parsePartCLogEvent, PART_C_DURATION_MS } from "../src/lib/part-c-timing.ts";
+import { createLogQueue, createReadingClock, parsePartCLogEvent } from "../src/lib/part-c-timing.ts";
 
 import { createActiveReadingTimer } from "../src/lib/active-reading-timer.ts";
 
@@ -102,11 +102,10 @@ test("events added during an in-flight request are drained before navigation", a
     assert.deepEqual(sent, [0, 1]);
 });
 
-test("sentence countdown and logged durations exclude decisions, saving and hidden time", () => {
-    assert.equal(PART_C_DURATION_MS, 600000);
-    const budget = createActiveReadingTimer(PART_C_DURATION_MS);
+test("unlimited sentence reading excludes decisions and hidden time and continues beyond ten minutes", () => {
+    const budget = createActiveReadingTimer(Infinity);
     const words = createReadingClock();
-    const readingTime = now => PART_C_DURATION_MS - budget.snapshot(now).remainingMs;
+    const readingTime = now => budget.snapshot(now).articleTimeMs;
     budget.startArticle("sentences", 10000);
     words.show(1, 0, readingTime(10000));
     budget.resume(10000);
@@ -117,16 +116,16 @@ test("sentence countdown and logged durations exclude decisions, saving and hidd
     const first = words.finish(readingTime(62000), true);
     budget.pause(62000); // Sentence completed; decision and saving begin.
     assert.deepEqual(first, { wordReadingTimeMs: 2000, sentenceReadingTimeMs: 2000 });
-    assert.equal(budget.snapshot(900000).remainingMs, 598000);
+    assert.equal(budget.snapshot(900000).articleTimeMs, 2000);
     assert.deepEqual(words.elapsed(readingTime(900000)), first);
     words.show(2, 0, readingTime(900000));
     budget.resume(900000);
-    assert.equal(budget.snapshot(1497999).remainingMs, 1);
-    // A late tick must clip both the budget and partial-word log at 10 active minutes.
-    budget.pause(1500000);
-    const timeout = words.finish(readingTime(1500000), true);
-    assert.deepEqual(timeout, { wordReadingTimeMs: 598000, sentenceReadingTimeMs: 598000 });
-    assert.equal(budget.snapshot(2000000).remainingMs, 0);
+    // Reading continues beyond the former deadline without clipping word durations.
+    budget.pause(1600000);
+    const completed = words.finish(readingTime(1600000), true);
+    assert.deepEqual(completed, { wordReadingTimeMs: 700000, sentenceReadingTimeMs: 700000 });
+    assert.equal(budget.snapshot(2000000).articleTimeMs, 702000);
+    assert.equal(budget.snapshot(2000000).remainingMs, Infinity);
 });
 
 test("timeout preserves partial reading durations without marking a sentence as completed", () => {

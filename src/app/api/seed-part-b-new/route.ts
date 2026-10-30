@@ -16,6 +16,7 @@ export async function GET() {
             ];
 
             await connection.query('SET FOREIGN_KEY_CHECKS = 0');
+            await connection.query("DELETE FROM study_text_responses WHERE part = ?", ["b"]);
             for (const table of tablesToDrop) {
                 try { await connection.query(`TRUNCATE TABLE ${table}`); } catch (e) { }
             }

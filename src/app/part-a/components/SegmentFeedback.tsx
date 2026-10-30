@@ -2,33 +2,18 @@
 
 import { type ChangeEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 
+import { getReadingRatingQuestions, READING_RATING_INSTRUCTION, type ReadingPhase } from "@/lib/reading-ratings";
+
 interface SegmentFeedbackProps {
+  phase: ReadingPhase;
   onSubmit: (
     summary: string,
     responses: Array<{ questionId: string; value: number; reactionTimeMs: number }>
   ) => void;
 }
 
-const GENERIC_RATING_QUESTIONS = [
-  {
-    id: "c1",
-    text: "Compared to the other articles that you have read today, how much new information was in this article?",
-  },
-  {
-    id: "c2",
-    text: "How easy was this article to read?",
-  },
-  {
-    id: "c3",
-    text: "How much did you learn from this article?",
-  },
-  {
-    id: "c4",
-    text: "How much did you learn overall from the articles you have read so far today (including this article)?",
-  },
-];
-
-export default function SegmentFeedback({ onSubmit }: SegmentFeedbackProps) {
+export default function SegmentFeedback({ phase, onSubmit }: SegmentFeedbackProps): React.JSX.Element {
+  const questions = getReadingRatingQuestions(phase);
   const [step, setStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, number>>({});
   const [currentValue, setCurrentValue] = useState<number>(50);
@@ -37,8 +22,6 @@ export default function SegmentFeedback({ onSubmit }: SegmentFeedbackProps) {
 
   useEffect(() => {
     void step;
-    setCurrentValue(50);
-    setHasInteracted(false);
     
     const timer = setTimeout(() => {
       sliderRef.current?.focus();
@@ -49,14 +32,16 @@ export default function SegmentFeedback({ onSubmit }: SegmentFeedbackProps) {
   const handleNext = () => {
     if (!hasInteracted) return;
 
-    const currentQuestion = GENERIC_RATING_QUESTIONS[step];
+    const currentQuestion = questions[step];
     const newResponses = {
       ...responses,
       [currentQuestion.id]: currentValue,
     };
     setResponses(newResponses);
 
-    if (step < GENERIC_RATING_QUESTIONS.length - 1) {
+    if (step < questions.length - 1) {
+      setCurrentValue(50);
+      setHasInteracted(false);
       setStep((prev) => prev + 1);
     } else {
       onSubmit(
@@ -92,27 +77,18 @@ export default function SegmentFeedback({ onSubmit }: SegmentFeedbackProps) {
     }
   };
 
-  const currentQuestion = GENERIC_RATING_QUESTIONS[step];
-  const progress = ((step + 1) / GENERIC_RATING_QUESTIONS.length) * 100;
-  const isLastStep = step === GENERIC_RATING_QUESTIONS.length - 1;
-
-  const getValueLabel = (val: number) => {
-    if (val === 50) return "Neutral";
-    if (val < 25) return "Low";
-    if (val < 50) return "Below Average";
-    if (val < 75) return "Above Average";
-    return "High";
-  };
+  const currentQuestion = questions[step];
+  const progress = ((step + 1) / questions.length) * 100;
 
   return (
     <div className="max-w-2xl mx-auto my-12 p-8 glass-panel rounded-2xl shadow-sm transition-all duration-500 ease-out border border-border/50">
       <div className="flex flex-col gap-6 mb-12">
         <div className="flex justify-between items-end">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted/80">
-            Assessment
+          <h2 className="text-lg font-medium text-foreground">
+            {READING_RATING_INSTRUCTION}
           </h2>
           <span className="text-xs font-medium text-muted tabular-nums">
-            Step {step + 1} of {GENERIC_RATING_QUESTIONS.length}
+            {step + 1} / {questions.length}
           </span>
         </div>
         <div className="h-1 w-full bg-input rounded-full overflow-hidden">
@@ -125,14 +101,14 @@ export default function SegmentFeedback({ onSubmit }: SegmentFeedbackProps) {
 
       <div className="mb-16 min-h-[4rem]">
         <h3 className="text-2xl font-medium leading-snug text-foreground animate-in fade-in slide-in-from-bottom-2 duration-500">
-          {currentQuestion.text}
+          {step + 1}. {currentQuestion.text}
         </h3>
       </div>
 
       <div className="relative px-2 mb-12">
-        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted/60 mb-10 select-none">
-          <span>Not at all</span>
-          <span>Very much</span>
+        <div className="flex justify-between gap-6 text-base text-foreground mb-10 select-none">
+          <span><strong className="block">0</strong>{currentQuestion.lowLabel}</span>
+          <span className="text-right"><strong className="block">100</strong>{currentQuestion.highLabel}</span>
         </div>
 
         <div className="relative flex items-center group py-6">
@@ -177,8 +153,7 @@ export default function SegmentFeedback({ onSubmit }: SegmentFeedbackProps) {
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={currentValue}
-            aria-valuetext={getValueLabel(currentValue)}
-            aria-description={hasInteracted ? `Current value: ${currentValue}` : "Adjust the slider to provide your answer"}
+            aria-valuetext={`${currentValue} out of 100`}
             aria-orientation="horizontal"
           />
         </div>
@@ -187,40 +162,15 @@ export default function SegmentFeedback({ onSubmit }: SegmentFeedbackProps) {
           <div
             className={`
               text-5xl font-bold tracking-tight tabular-nums transition-all duration-500 ease-out
-              ${hasInteracted ? "text-foreground scale-100 blur-0" : "text-muted/40 scale-95 blur-[0.5px]"}
+              ${hasInteracted ? "text-foreground scale-100 blur-0" : "text-muted scale-95"}
             `}
           >
-            {currentValue}
-          </div>
-          
-          <div className="h-6 overflow-hidden">
-            <span 
-              className={`
-                text-sm font-medium transition-all duration-300 block
-                ${hasInteracted ? "text-muted opacity-100 translate-y-0" : "text-transparent opacity-0 translate-y-2"}
-              `}
-            >
-              {getValueLabel(currentValue)}
-            </span>
+            {hasInteracted ? currentValue : ""}
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-8 border-t border-border/50">
-        <div className="h-8 flex items-center min-w-[200px]">
-           {!hasInteracted ? (
-            <output className="text-xs font-medium text-muted/70 flex items-center gap-2 animate-pulse">
-              <span className="w-1.5 h-1.5 rounded-full bg-muted/70" />
-              Adjust slider to continue
-            </output>
-          ) : (
-            <output className="text-xs font-medium text-primary/80 flex items-center gap-2 animate-in fade-in duration-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              Response ready
-            </output>
-          )}
-        </div>
-        
+      <div className="flex justify-end pt-8 border-t border-border/50">
         <button
           type="button"
           onClick={handleNext}
@@ -235,7 +185,7 @@ export default function SegmentFeedback({ onSubmit }: SegmentFeedbackProps) {
             }
           `}
         >
-          <span>{isLastStep ? "Complete Assessment" : "Next Question"}</span>
+          <span>Next</span>
           <svg
             aria-hidden="true"
             className={`w-4 h-4 transition-transform duration-300 ${hasInteracted ? "group-hover:translate-x-1" : ""}`}

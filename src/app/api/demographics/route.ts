@@ -1,9 +1,14 @@
+import type { RowDataPacket } from "mysql2";
 import { NextResponse } from "next/server";
+
 import { pool } from "@/lib/db";
-import { RowDataPacket } from "mysql2";
+import { validateDemographicCategories } from "@/lib/demographics";
 
 export async function POST(request: Request): Promise<Response> {
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: "Invalid demographic details" }, { status: 400 });
+  }
   const {
     participantId,
     dobMonth,
@@ -25,6 +30,11 @@ export async function POST(request: Request): Promise<Response> {
       { error: "Missing participant ID" },
       { status: 400 },
     );
+  }
+
+  const categoryError = validateDemographicCategories(body);
+  if (categoryError) {
+    return NextResponse.json({ error: categoryError }, { status: 400 });
   }
 
   const connection = await pool.getConnection();

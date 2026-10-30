@@ -1,8 +1,9 @@
 "use client";
-import { getApiPath } from "@/lib/api";
-
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
+import { getApiPath } from "@/lib/api";
+import { GENDER_OPTIONS, RACE_OPTIONS } from "@/lib/demographics";
 
 function DemographicsForm() {
     const router = useRouter();
@@ -143,7 +144,7 @@ function DemographicsForm() {
         <div className="min-h-screen p-6 sm:p-12">
             <div className="mx-auto max-w-3xl glass-panel rounded-2xl shadow-sm p-8 sm:p-10">
                 <h1 className="mb-2 text-3xl font-semibold text-[var(--foreground)]">Demographic Information</h1>
-                <p className="mb-10 text-[var(--muted)]">Please answer the following questions about yourself.</p>
+                <p className="mb-10 text-[var(--muted)]">Please answer the following questions:</p>
 
                 <form onSubmit={handleSubmit} className="space-y-10">
                     {/* Date of Birth */}
@@ -162,10 +163,10 @@ function DemographicsForm() {
                     </div>
 
                     {/* Gender */}
-                    <div className={sectionClass}>
-                        <label htmlFor="gender-male" className={labelClass}>Gender</label>
-                        <div className="flex gap-6">
-                            {["Male", "Female"].map((g) => (
+                    <fieldset className={sectionClass}>
+                        <legend className={`${labelClass} px-2`}>Gender</legend>
+                        <div className="flex flex-wrap gap-x-6 gap-y-3">
+                            {GENDER_OPTIONS.map((g) => (
                                 <label key={g} className="inline-flex items-center cursor-pointer">
                                     <input
                                         id={g === "Male" ? "gender-male" : undefined}
@@ -181,7 +182,7 @@ function DemographicsForm() {
                                 </label>
                             ))}
                         </div>
-                    </div>
+                    </fieldset>
 
                     {/* Education */}
                     <div className={sectionClass}>
@@ -327,55 +328,52 @@ function DemographicsForm() {
                     </div>
 
                     {/* Ethnicity */}
-                    <div className={sectionClass}>
-                        <label htmlFor="isHispanic-yes" className={labelClass}>Are you Hispanic or Latino?</label>
-                        <div className="flex gap-6 mt-3">
-                            {["Yes", "No"].map((opt) => (
-                                <label key={opt} className="inline-flex items-center cursor-pointer">
-                                    <input
-                                        id={opt === "Yes" ? "isHispanic-yes" : undefined}
-                                        type="radio"
-                                        name="isHispanic"
-                                        value={opt}
-                                        checked={formData.isHispanic === opt}
-                                        onChange={(e) => setFormData({ ...formData, isHispanic: e.target.value })}
-                                        className={radioClass}
-                                        required
-                                    />
-                                    <span className="ml-2 text-[var(--foreground)]">{opt}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
+                    <fieldset className={sectionClass}>
+                        <legend className="px-2 text-lg font-medium text-[var(--foreground)]">Ethnicity</legend>
+                        <fieldset>
+                            <legend className={labelClass}>Are you Hispanic or Latino?</legend>
+                            <div className="flex gap-6 mt-3">
+                                {["Yes", "No"].map((opt) => (
+                                    <label key={opt} className="inline-flex items-center cursor-pointer">
+                                        <input
+                                            id={opt === "Yes" ? "isHispanic-yes" : undefined}
+                                            type="radio"
+                                            name="isHispanic"
+                                            value={opt}
+                                            checked={formData.isHispanic === opt}
+                                            onChange={(e) => setFormData({ ...formData, isHispanic: e.target.value })}
+                                            className={radioClass}
+                                            required
+                                        />
+                                        <span className="ml-2 text-[var(--foreground)]">{opt}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </fieldset>
 
-                    <div className={sectionClass}>
-                        <label htmlFor="race-native" className={labelClass}>
-                            Please check one of the following ethnic or racial categories that best describe you.
-                        </label>
-                        <div className="mt-4 space-y-3">
-                            {[
-                                "Native American/Alaska Native",
-                                "Asian",
-                                "Native Hawaiian or Other Pacific Islander",
-                                "Black or African American",
-                                "White or Caucasian",
-                            ].map((race) => (
-                                <label key={race} className="flex items-center hover:bg-[var(--input-bg)] -mx-2 px-2 py-1 rounded-md transition-colors cursor-pointer">
-                                    <input
-                                        id={race === "Native American/Alaska Native" ? "race-native" : undefined}
-                                        type="radio"
-                                        name="race"
-                                        value={race}
-                                        checked={formData.race === race}
-                                        onChange={(e) => setFormData({ ...formData, race: e.target.value })}
-                                        className={radioClass}
-                                        required
-                                    />
-                                    <span className="ml-2 text-sm text-[var(--foreground)]">{race}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
+                        <fieldset className="mt-6">
+                            <legend className={labelClass}>
+                                Please check one of the following ethnic or racial categories that best describe you.
+                            </legend>
+                            <div className="mt-4 space-y-3">
+                                {RACE_OPTIONS.map((race) => (
+                                    <label key={race} className="flex items-center hover:bg-[var(--input-bg)] -mx-2 px-2 py-1 rounded-md transition-colors cursor-pointer">
+                                        <input
+                                            id={race === "Native American/Alaska Native" ? "race-native" : undefined}
+                                            type="radio"
+                                            name="race"
+                                            value={race}
+                                            checked={formData.race === race}
+                                            onChange={(e) => setFormData({ ...formData, race: e.target.value })}
+                                            className={radioClass}
+                                            required
+                                        />
+                                        <span className="ml-2 text-sm text-[var(--foreground)]">{race}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </fieldset>
+                    </fieldset>
 
                     {/* Prior Knowledge */}
                     <div className={sectionClass}>

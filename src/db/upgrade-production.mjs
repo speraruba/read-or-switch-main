@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 const steps = [
     [fileURLToPath(new URL("./rename-study-parts.mjs", import.meta.url))],
     ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--participant-details"],
+    ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--demographics"],
+    ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--study-responses"],
     ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--part-c-timing"],
     ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--part-c-recall"],
     ["--experimental-strip-types", fileURLToPath(new URL("./migrate.ts", import.meta.url)), "--part-a-recall-phases"],

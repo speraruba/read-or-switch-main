@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
+import { isStudyVisible } from "@/lib/study-display";
 import { getApiPath } from "@/lib/api";
-import { createEditableTranscript } from "@/lib/editable-transcript";
+
 import { createSummaryTranscription } from "@/lib/summary-transcription";
 import type { TranscriptionSession } from "@/lib/summary-transcription";
 
@@ -21,31 +22,7 @@ export default function SummaryEditor({ participantId, value, onChange, onRecord
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [status, setStatus] = useState<"idle" | "starting" | "listening" | "stopping">("idle");
     const [message, setMessage] = useState("");
-    const draftRef = useRef<ReturnType<typeof createEditableTranscript> | null>(null);
-    const composingRef = useRef(false);
-    const pendingTranscriptRef = useRef<string | null>(null);
-    const selectionRef = useRef<{ start: number; end: number } | null>(null);
     const active = status !== "idle";
-
-    useLayoutEffect(() => {
-        const selection = selectionRef.current;
-        if (selection && textareaRef.current) {
-            textareaRef.current.setSelectionRange(selection.start, selection.end);
-            selectionRef.current = null;
-        }
-    }, [value]);
-
-    const applyTranscript = (transcript: string) => {
-        if (composingRef.current) {
-            pendingTranscriptRef.current = transcript;
-            return;
-        }
-        const textarea = textareaRef.current;
-        if (textarea && document.activeElement === textarea) {
-            selectionRef.current = { start: textarea.selectionStart, end: textarea.selectionEnd };
-        }
-        if (draftRef.current) onChange(draftRef.current.update(transcript));
-    };
 
     useEffect(() => () => { sessionRef.current?.cancel(); }, []);
     useEffect(() => {
@@ -54,24 +31,36 @@ export default function SummaryEditor({ participantId, value, onChange, onRecord
         }
     }, [value, active]);
 
+    useEffect(() => {
+        const pauseRecording = () => {
+            if ((!isStudyVisible()) && sessionRef.current) {
+                setStatus("stopping");
+                sessionRef.current.stop();
+            }
+        };
+        document.addEventListener("fullscreenchange", pauseRecording);
+        document.addEventListener("visibilitychange", pauseRecording);
+        return () => {
+            document.removeEventListener("fullscreenchange", pauseRecording);
+            document.removeEventListener("visibilitychange", pauseRecording);
+        };
+    }, []);
+
     const toggleRecording = () => {
         if (sessionRef.current) {
             setStatus("stopping");
             sessionRef.current.stop();
             return;
         }
-        const draft = createEditableTranscript(value);
-        draftRef.current = draft;
-        pendingTranscriptRef.current = null;
+        const previousText = value.trim();
         const session = createSummaryTranscription({
             endpoint: getApiPath("/api/transcription/session"),
             participantId,
             language: "auto",
             onReady: () => setStatus("listening"),
-            onText: applyTranscript,
+            onText: transcript => onChange([previousText, transcript.trim()].filter(Boolean).join(" ")),
             onEnd: error => {
                 sessionRef.current = null;
-                // Keep the draft through IME composition if a final result arrives while typing.
                 setStatus("idle");
                 onRecordingChange(false);
                 setMessage(error || "");
@@ -102,30 +91,20 @@ export default function SummaryEditor({ participantId, value, onChange, onRecord
                             <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" />
                         </svg>
                     </span>
+                    <span className="font-semibold">{buttonText}</span>
                 </button>
                 <p id={`${id}-status`} role="status" className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[var(--foreground)]/70">{statusText}</p>
             </div>
 
             <div className="flex items-center justify-between mb-3">
-                <label htmlFor={id} className="text-sm font-semibold">Your summary</label>
-                <span className="text-xs text-[var(--muted)]">Edit anytime</span>
+                <label htmlFor={id} className="text-sm font-semibold">Your live transcript</label>
             </div>
             <textarea ref={textareaRef} id={id} disabled={disabled}
                 className="w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 text-base leading-8 text-[var(--foreground)] min-h-[180px] focus-ring placeholder:text-[var(--muted)]"
-                placeholder="Speak or type your summary here…"
+                placeholder="Your spoken recall will appear here…"
                 value={value}
-                onCompositionStart={() => { composingRef.current = true; }}
-                onCompositionEnd={event => {
-                    composingRef.current = false;
-                    draftRef.current?.edit(event.currentTarget.value);
-                    const pending = pendingTranscriptRef.current;
-                    pendingTranscriptRef.current = null;
-                    if (pending !== null) applyTranscript(pending);
-                }}
-                onChange={event => {
-                    draftRef.current?.edit(event.target.value);
-                    onChange(event.target.value);
-                }} />
+                readOnly
+                aria-readonly="true" />
         </div>
     );
 }

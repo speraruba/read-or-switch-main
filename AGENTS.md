@@ -6,6 +6,8 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 
 ## 1) Commands
 - Dev: `npm run dev`
+- Development output uses `.next-dev`; production build/start and standalone packaging use `.next`. Keep these directories separate so builds cannot overwrite files used by a running dev server.
+- Local fullscreen bypass: set `NEXT_PUBLIC_DISABLE_FULLSCREEN=true` in `.env.development.local`. Only applies to development; remove/set false to restore enforcement. Production always requires fullscreen.
 - Build (type+bundle+tsc): `npm run build`
 - Start built app: `npm run start`
 - Lint: `npm run lint`
@@ -26,13 +28,18 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Existing databases: `npm run db:migrate:part-c-timing` adds timing columns without resetting tables.
 - Part A practice/formal recalls: `npm run db:migrate:part-a-recall-phases` adds the phase column without resetting data.
 - Part C recall storage: `npm run db:migrate:part-c-recall` creates the summary table without resetting data.
-- Participant details: `npm run db:migrate:participant-details` adds the name field and removes the placeholder email default, preserving existing records. Entry requires ID, name, email, and consent.
+- Participant details: `npm run db:migrate:participant-details` adds the name field and removes the placeholder email default, preserving existing records. Entry requires Participant ID, matching confirmation, and consent; existing name/email records are preserved.
+- Recall/Summary storage: `npm run db:migrate:study-responses` adds `study_text_responses` without changing legacy responses. Included in production upgrade. New records identify part, phase, task, input method, and retry-safe submission ID.
+- Recall/Summary validation: `npm run test:one -- tests/study-response.test.mjs`.
 - Registration validation: `npm run test:one -- tests/participant-registration.test.mjs`.
+- Demographics: `npm run db:migrate:demographics` widens gender storage without resetting data; included in production upgrade. Run before serving the four gender options. Validate with `npm run test:one -- tests/demographics.test.mjs`.
+- Gender options are Male, Female, Non-binary, Prefer not to say (user-authorized study wording). Ethnicity retains Hispanic/Latino Yes/No and all six race choices, including Multiple categories, from the local CogSearch template; that template only had two genders.
 - Also validate changes via lint + build and focused manual checks of routes/components.
+- Reading rating wording/order follows the legacy `prac_c1–c4` / `task_c1–c4` pages. Display ease first but keep storage IDs unchanged (`c2` ease, `c1` novelty, `c3` article learning, `c4` overall learning). Check with `npm run test:one -- tests/reading-ratings.test.mjs`.
 
 ## 3) Linting & formatting
 - ESLint flat config: `eslint.config.mjs` using `eslint-config-next` core-web-vitals + TypeScript, adapted with `FlatCompat` from `@eslint/eslintrc` for ESLint 9.
-- Ignores: `.next/**`, `out/**`, `build/**`, `next-env.d.ts` via `globalIgnores` override.
+- Ignores: `.next/**`, `.next-dev/**`, `out/**`, `build/**`, `next-env.d.ts` via the global ignores override.
 - No Prettier/Stylelint. Follow local file style: 4-space indentation, semicolons; prefer double quotes in TS/TSX but keep consistency within the file.
 - Run `npm run lint` before handoff; fix violations rather than disabling rules.
 
@@ -151,8 +158,9 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Do not mix heavy refactors with bugfixes unless required.
 
 ## 23) Project scope reminders
-- Current flow: consent → demographics → A (practice + recall, formal + recall) → B (practice + recall, formal + recall) → C (reading + recall + comprehension) → cognitive (letter comparison + vocabulary) → debrief. Cognitive tests live at `/assessment` and retain the existing `part_a_letter_item` / `part_a_vocabulary_*` storage. Only FinalAssessment is legacy. Timing/logging critical (see PRD).
-- Maintain data logging and timing expectations when adjusting flows.
+- Current flow: consent → demographics → A (practice + voice recall, formal + voice recall + written summary) → B (practice + voice recall, formal + voice recall + written summary) → C (untimed reading + voice recall + comprehension, no practice/formal split or written summary) → cognitive (letter comparison + vocabulary) → debrief. Part C omits phase in the UI/request; the server retains the legacy `formal` enum only for database compatibility and rejects new C summaries. Cognitive tests live at `/assessment` and retain the existing `part_a_letter_item` / `part_a_vocabulary_*` storage. Only FinalAssessment is legacy. Timing/logging critical (see PRD).
+- Maintain data logging and timing expectations when adjusting flows. Fullscreen is required throughout the study; visible reading clocks pause on fullscreen exit. Letter Comparison S/D keys target the highlighted pair and preserve round-relative reaction times.
+- Historical Text Foraging recording and Letter Comparison instructions were not found in repository materials or history; current operational instructions are replacements, not verified historical text. `GEMINI.md` is also absent.
 
 ## 24) If you add tooling or tests
 - Document new commands here and in package.json.

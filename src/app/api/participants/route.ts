@@ -12,16 +12,16 @@ export async function POST(request: Request): Promise<Response> {
     }
     const result = validateParticipantRegistration(body);
     if (result.error !== undefined) return NextResponse.json({ error: result.error }, { status: 400 });
-    const { participantId, name, email } = result.value;
+    const { participantId } = result.value;
     const pid = BigInt(participantId);
     try {
         await query(
-            `INSERT INTO participants (participant_id, name, email, consent, part1_condition, part2_condition)
-             VALUES (?, ?, ?, TRUE, ?, ?)
-             ON DUPLICATE KEY UPDATE name = VALUES(name), email = VALUES(email), consent = TRUE,
+            `INSERT INTO participants (participant_id, consent, part1_condition, part2_condition)
+             VALUES (?, TRUE, ?, ?)
+             ON DUPLICATE KEY UPDATE consent = TRUE,
              part1_condition = IFNULL(part1_condition, VALUES(part1_condition)),
              part2_condition = IFNULL(part2_condition, VALUES(part2_condition))`,
-            [participantId, name, email, Number(pid % BigInt(3)), Number(pid % BigInt(2))]
+            [participantId, Number(pid % BigInt(3)), Number(pid % BigInt(2))]
         );
         return NextResponse.json({ success: true, participantId });
     } catch (error) {

@@ -117,6 +117,3 @@ export function createLogQueue(send: (event: PartCLogEvent) => Promise<void>): {
         },
     };
 }
-
-export const PART_C_DURATION_MS = 10 * 60 * 1000;
-

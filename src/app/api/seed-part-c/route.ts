@@ -41,6 +41,7 @@ export async function GET() {
 
         // Disable FK checks
         await connection.query("SET FOREIGN_KEY_CHECKS = 0");
+        await connection.query("DELETE FROM study_text_responses WHERE part = ?", ["c"]);
 
         // 1. Populate part_c_sentences
         const sentencesPath = path.resolve(process.cwd(), 'docs/Study Material/part_c_sentences.csv');

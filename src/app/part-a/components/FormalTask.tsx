@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
+import RatingDemo from "@/app/components/RatingDemo";
 import CountdownTimer from "@/app/components/CountdownTimer";
+import { isStudyVisible } from "@/lib/study-display";
 import { getApiPath } from "@/lib/api";
 import SegmentFeedback from "./SegmentFeedback";
 import SummaryInput from "./SummaryInput";
@@ -70,17 +72,19 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
             }
         };
         const visibilityChanged = () => {
-            if (document.hidden) readingTimer.pause(Date.now());
+            if (!isStudyVisible()) readingTimer.pause(Date.now());
             else readingTimer.resume(Date.now());
             update();
         };
         visibilityChanged();
         const interval = window.setInterval(update, 100);
         document.addEventListener("visibilitychange", visibilityChanged);
+        document.addEventListener("fullscreenchange", visibilityChanged);
         return () => {
             readingTimer.pause(Date.now());
             window.clearInterval(interval);
             document.removeEventListener("visibilitychange", visibilityChanged);
+            document.removeEventListener("fullscreenchange", visibilityChanged);
         };
     }, [view, articleKey, readingTimer]);
 
@@ -183,70 +187,34 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
                 
                 <div className="text-[var(--muted)] text-lg space-y-6 leading-relaxed text-left">
                     <p>
-                        Now, it&apos;s time for the formal task! You will receive a bonus based on your overall learning performance in the formal task.
+                        <strong>Now, here is the formal task.</strong>
                     </p>
                     <p>
-                        Your task is to learn about health. There are articles about five health-related topics. The goal is to learn as much as you can about health instead of memorizing the articles word for word. You will have 15 minutes to read and learn about these topics before answering some questions. It is very important for you to pay attention to the articles and do your best to learn from them. Some health topics are more difficult than others, so please try to manage your time effectively to optimize your learning within the time limit.
+                        Your task is to learn about some topics in medical science related to Donation, Medical Transplants, and Cancer. There are five topics, and your goal is to learn as much as you can about them. You will have 15 minutes of reading time to learn about Donation, Medical Transplants, and Cancer before I ask you to recall aloud what you have learned and write a brief summary. <strong>It is very important for you to pay attention to the articles and do your best to learn about the topics.</strong> You will receive bonus money based on your performance.
                     </p>
                     <p>
-                        The timer runs only while an article is displayed. Choosing a topic and answering questions do not count toward the 15 minutes. During the 15 minutes, you will select one health topic at a time and read a collection of articles about it. You will see one article at a time and can read at your own pace.
+                        During the learning phase, you will select one topic at a time and read a collection of articles about it. You can read each article at your own pace. After you read each article, you have a choice. You can either continue reading about this topic by pressing the “Read the Next Article” button OR you can switch to a new topic by pressing “Go to Other Topics.” You only have 15 minutes of reading time to learn about Donation, Medical Transplants, and Cancer, so do your best to <strong>concentrate and stay with a topic only as long as you feel you are still learning something</strong>. If the articles in the topic are <strong>either too hard or not helping you to learn anything new, you might want to decide to switch to a new topic</strong>. This is your choice.
                     </p>
                     <p>
-                        After reading each article, you will have a choice:
-                    </p>
-                    <ul className="list-disc pl-6 space-y-2">
-                        <li>To continue reading about the same health topic, click <strong>&quot;Read the Next Article.&quot;</strong></li>
-                        <li>To switch to a new topic, click <strong>&quot;Go to Other Topics.&quot;</strong></li>
-                    </ul>
-                    <p>
-                        You only have <strong>15 minutes</strong> to learn about health, so <strong>do your best to concentrate and stay with a topic only as long as you feel you are still learning something.</strong> If the articles for the topic seem too difficult or not helping you learn, you might want to choose to switch to another topic. The choice is yours.
+                        The timer runs only while you are viewing an article; choosing a topic and completing the ratings do not count toward the reading time.
                     </p>
                     <p>
-                        Note that there are more articles than you can read fully within 15 minutes, so choose carefully when you continue or switch topics so that you can learn as much information as possible about health.
+                        Note that there are more articles than you can completely read within 15 minutes so you should make your decisions about <strong>whether to continue or stop reading carefully</strong> so that you can learn as much information as possible about Donation, Medical Transplants, and Cancer.
                     </p>
                     <p>
-                        After reading each article, you will be asked to rate how easy the article was, how much new information you thought was in the article, how much you learned from the article, AND how much you learned from all the articles you read so far today. You will be asked to make these ratings on a scale from 0 to 100 by moving the circle:
+                        After reading each article within a topic, you will be asked to rate how easy the text was, how much new information you thought was in the article, how much you learned from this article, AND how much you learned overall about Donation, Medical Transplants, and Cancer. You will be asked to make these ratings on a scale from 0 to 100 by moving the circle:
                     </p>
                     
-                    <div className="bg-[var(--surface)] p-6 rounded-lg border border-[var(--border)] space-y-6">
-                        <div>
-                            <p className="font-medium text-[var(--foreground)] mb-2">1. Compared to the other articles that you have read today, how much new information was in this article?</p>
-                            <ul className="list-disc pl-6 text-sm">
-                                <li>0: No New Information</li>
-                                <li>100: Completely New Information</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <p className="font-medium text-[var(--foreground)] mb-2">2. How easy was this article to read?</p>
-                            <ul className="list-disc pl-6 text-sm">
-                                <li>0: Very Difficult</li>
-                                <li>100: Very Easy</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <p className="font-medium text-[var(--foreground)] mb-2">3. How much did you learn from this article?</p>
-                            <ul className="list-disc pl-6 text-sm">
-                                <li>0: Didn&apos;t Learn Anything at All</li>
-                                <li>100: Learned a Lot</li>
-                            </ul>
-                        </div>
-                        <div>
-                            <p className="font-medium text-[var(--foreground)] mb-2">4. How much did you learn overall from the articles you have read so far today (including this article)?</p>
-                            <ul className="list-disc pl-6 text-sm">
-                                <li>0: Didn&apos;t Learn Anything at All</li>
-                                <li>100: Learned a Lot</li>
-                            </ul>
-                        </div>
-                    </div>
+                    <RatingDemo phase="formal" />
 
                     <p>
-                        Again, after reading each article, you can decide to keep reading about this health topic by moving to the next article, or go back to the main page to choose another health topic. Once you decide to leave a topic, you will not be able to return.
+                        Again, after reading each article, you can decide to keep reading about this topic by moving to the next article, or to go back to the main page to choose another topic. Once you decide to leave a topic, you will not be able to return.
                     </p>
                     <p>
-                        You will be asked what you have learned at the end of the task. Please try your best to learn as much information about health in 15 minutes.
+                        The goal is to learn as much about Donation, Medical Transplants, and Cancer as possible instead of memorizing the passages word for word. You will need to do your best to <strong>optimize your learning outcome</strong>.
                     </p>
                     <p>
-                        When you are ready, please go to the next page by pressing the <strong>&quot;Start&quot;</strong> button.
+                        You will be asked to recall aloud what you have learned at the end of the task, then write a summary of what you remembered the most (about 100 words). Your performance will be awarded based on the number of facts you learned. Please try your best to learn as much information about Donation, Medical Transplants, and Cancer in 15 minutes (not including topic selection or rating time).
                     </p>
                 </div>
 
@@ -269,12 +237,12 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
         const allVisited = subtopics.length > 0 && subtopics.every(sub => visitedSubtopicIds.has(sub.id));
 
         return (
-            <div className="w-full h-full flex flex-col p-6">
+            <div className="w-full h-full overflow-y-auto flex flex-col p-6 bg-blue-50">
                 <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col mt-8">
                     <div className="flex justify-between items-end mb-12 border-b border-[var(--border)] pb-6">
                         <div>
                             <h2 className="text-3xl font-serif font-medium text-[var(--foreground)] mb-2">Formal Subtopics</h2>
-                            <p className="text-[var(--muted)]">Choose a subtopic to begin reading.</p>
+                            <p className="text-[var(--muted)]">Choose a blue topic to begin reading. Green topics have already been visited.</p>
                         </div>
                         <CountdownTimer seconds={secondsLeft} label="Formal reading time remaining" paused />
                     </div>
@@ -288,9 +256,9 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
                                     key={sub.id}
                                     onClick={() => !isVisited && handleSelectSubtopic(sub)}
                                     disabled={isVisited || isLoadingArticle}
-                                    className={`relative p-8 rounded-xl border text-left transition-all duration-300 flex flex-col justify-between h-48 group overflow-hidden ${isVisited
-                                        ? "bg-[var(--input-bg)] border-transparent text-[var(--muted)]"
-                                        : "bg-[var(--surface)] border-[var(--border)] hover:border-[var(--primary)] hover:shadow-lg hover:-translate-y-1"
+                                    className={`relative p-8 rounded-xl border text-left transition-all duration-300 flex flex-col justify-between min-h-48 group ${isVisited
+                                        ? "bg-emerald-100 border-emerald-800 text-emerald-950"
+                                        : "bg-blue-100 border-blue-800 text-blue-950 hover:bg-blue-200 hover:shadow-lg"
                                         }`}
                                 >
                                     <div className="relative z-10">
@@ -302,7 +270,7 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
 
                                     {isVisited && (
                                         <span className="absolute bottom-6 right-6 text-xs font-bold uppercase tracking-widest text-[var(--muted)] border border-[var(--border)] px-3 py-1 rounded-full">
-                                            Completed
+                                            Visited
                                         </span>
                                     )}
 
@@ -391,7 +359,7 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
                             Go to Other Topics
                         </button>
                         
-                        <div className="text-[10px] text-[var(--muted)] uppercase tracking-widest hidden md:block">
+                        <div className="text-sm text-[var(--muted)] uppercase tracking-widest hidden md:block">
                              {currentSegmentIndex + 1} <span className="mx-1 opacity-30">/</span> {segments.length}
                         </div>
 
@@ -415,7 +383,7 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
                 <div className="flex justify-end"><CountdownTimer seconds={secondsLeft} label="Formal reading time remaining" paused /></div>
                 {pendingAction === "finish" && <p className="mt-2 text-center text-[var(--muted)]">Reading time is up. Rate this article before recall.</p>}
                 <fieldset disabled={isSubmitting}>
-                    <SegmentFeedback onSubmit={handleFeedbackSubmit} />
+                    <SegmentFeedback phase="formal" onSubmit={handleFeedbackSubmit} />
                 </fieldset>
             </div>
         );

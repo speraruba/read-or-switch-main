@@ -15,7 +15,9 @@
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "test:one": "node --experimental-strip-types --test",
     "db:migrate:production": "node src/db/upgrade-production.mjs",
-    "db:migrate:participant-details": "node --experimental-strip-types src/db/migrate.ts --participant-details"
+    "db:migrate:participant-details": "node --experimental-strip-types src/db/migrate.ts --participant-details",
+    "db:migrate:demographics": "node --experimental-strip-types src/db/migrate.ts --demographics",
+    "db:migrate:study-responses": "node --experimental-strip-types src/db/migrate.ts --study-responses"
   },
   "dependencies": {
     "csv-parse": "^6.1.0",

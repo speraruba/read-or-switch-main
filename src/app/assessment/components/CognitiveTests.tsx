@@ -1,7 +1,8 @@
 "use client";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ChangeEvent, MouseEvent } from "react";
 
+import { isStudyVisible } from "@/lib/study-display";
 import { getApiPath } from "@/lib/api";
 
 interface CognitiveTestsProps {
@@ -68,6 +69,9 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
     const [vocabError, setVocabError] = useState(false);
 
     // Letter Test State
+    const [activeLetterId, setActiveLetterId] = useState(1);
+    const letterReadyRef = useRef(true);
+    const activePairRef = useRef<HTMLDivElement>(null);
     const [currentRound, setCurrentRound] = useState<number>(1);
     const [letterResponses, setLetterResponses] = useState<Record<number, string>>({}); // Keyed by absolute ID (1-20)
     const [letterData, setLetterData] = useState<LetterResponseData[]>([]);
@@ -110,24 +114,41 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
         window.scrollTo(0, 0);
     };
 
-    const handleLetterResponse = (event: MouseEvent<HTMLButtonElement>, absoluteId: number, val: "S" | "D", problem: { left: string, right: string, answer: "S" | "D" }) => {
-        if (savingRef.current) return;
-        const reactionTime = startTime ? Math.max(0, Math.round(event.timeStamp - startTime)) : 0;
+    const handleLetterResponse = useCallback((timestamp: number, absoluteId: number, val: "S" | "D", problem: { left: string; right: string; answer: "S" | "D" }) => {
+        if (savingRef.current || !letterReadyRef.current || !isStudyVisible()) return;
+        letterReadyRef.current = false;
+        const reactionTime = startTime ? Math.max(0, Math.round(timestamp - startTime)) : 0;
+        const updated = { ...letterResponses, [absoluteId]: val };
+        setLetterResponses(updated);
+        setLetterData(previous => [...previous.filter(item => item.problemId !== absoluteId), {
+            problemId: absoluteId, response: val, isCorrect: val === problem.answer, reactionTimeMs: reactionTime,
+        }]);
+        const nextIndex = LETTER_COMPARISON_ROUNDS[currentRound].findIndex((_, index) => !updated[(currentRound - 1) * 10 + index + 1]);
+        setActiveLetterId(nextIndex === -1 ? 0 : (currentRound - 1) * 10 + nextIndex + 1);
+    }, [startTime, letterResponses, currentRound]);
 
-        setLetterResponses(prev => ({ ...prev, [absoluteId]: val }));
+    useLayoutEffect(() => {
+        letterReadyRef.current = true;
+        if (subPhase === "letter") {
+            activePairRef.current?.focus({ preventScroll: true });
+            activePairRef.current?.scrollIntoView({ block: "center" });
+        }
+    }, [activeLetterId, subPhase, letterResponses]);
 
-        setLetterData(prev => {
-            const filtered = prev.filter(p => p.problemId !== absoluteId);
-            const isCorrect = (val === problem.answer);
-
-            return [...filtered, {
-                problemId: absoluteId,
-                response: val,
-                isCorrect,
-                reactionTimeMs: reactionTime
-            }];
-        });
-    };
+    useEffect(() => {
+        if (subPhase !== "letter" || !activeLetterId) return;
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.repeat || event.isComposing || event.ctrlKey || event.altKey || event.metaKey || !isStudyVisible()) return;
+            if (event.target instanceof HTMLElement && (event.target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName))) return;
+            const key = event.key.toUpperCase();
+            if (key !== "S" && key !== "D") return;
+            event.preventDefault();
+            const problem = LETTER_COMPARISON_ROUNDS[currentRound][(activeLetterId - 1) % 10];
+            handleLetterResponse(event.timeStamp, activeLetterId, key, problem);
+        };
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [subPhase, activeLetterId, currentRound, handleLetterResponse]);
 
     const handleLetterSubmit = async (event: MouseEvent<HTMLButtonElement>) => {
         if (savingRef.current || !LETTER_COMPARISON_ROUNDS[currentRound].every((_, index) => letterResponses[(currentRound - 1) * 10 + index + 1])) return;
@@ -137,6 +158,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
 
         if (currentRound < totalRounds) {
             // Move to next round
+            setActiveLetterId(currentRound * 10 + 1);
             setCurrentRound(prev => prev + 1);
             setStartTime(eventTimestamp); // Reset timer for next round
             window.scrollTo(0, 0); // Scroll to top for new round
@@ -226,10 +248,12 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                     {isLetter ? <>
                         <p>Compare each pair of letter strings and decide whether they are exactly the same or different.</p>
                         <ul className="list-disc pl-5 space-y-2">
-                            <li>Select <strong>S (Same)</strong> if every letter matches in the same order.</li>
-                            <li>Select <strong>D (Different)</strong> if any letter or its position is different.</li>
+                            <li>Press <strong>S (Same)</strong> if every letter matches in the same order.</li>
+                            <li>Press <strong>D (Different)</strong> if any letter or its position is different.</li>
                         </ul>
                         <p>There are two rounds of 10 pairs. Answer every pair, then select <strong>Next Round</strong> or <strong>Complete Letter Comparison</strong>.</p>
+                        <p>The highlighted pair receives your keyboard answer. After each answer, the highlight moves to the next unanswered pair. You can also use the on-screen S and D buttons.</p>
+                        <p>For example: ABC / ABC = S (Same); ABC / ADC = D (Different).</p>
                         <p>Work as quickly and accurately as you can.</p>
                     </> : <>
                         <p>This task tests your knowledge of word meanings. For each word, select the option with the same or nearly the same meaning.</p>
@@ -264,10 +288,10 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                     <h2 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">
                         Letter Comparison <span className="font-normal text-[var(--muted)] mx-2">/</span> Round {currentRound}
                     </h2>
-                    <p className="text-[var(--muted)]">S = Same · D = Different. Answer every pair before continuing.</p>
+                    <p className="text-[var(--muted)]">Press S = Same or D = Different for the highlighted pair. The highlight moves to the next unanswered pair. You may also use the buttons.</p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-6">
                     {currentProblems.map((prob, idx) => {
                         const absoluteId = idOffset + idx + 1;
                         const response = letterResponses[absoluteId];
@@ -275,8 +299,14 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                         return (
                             <div
                                 key={absoluteId}
+                                ref={activeLetterId === absoluteId ? activePairRef : undefined}
+                                tabIndex={0}
+                                role="group"
+                                onFocus={(event) => { if (event.target === event.currentTarget) setActiveLetterId(absoluteId); }}
+                                aria-label={`Pair ${absoluteId}. ${activeLetterId === absoluteId ? "Press S for same or D for different." : "Select to answer using S or D."}`}
                                 className={`
-                                    group relative flex items-center justify-between p-4 rounded-xl border transition-all duration-200
+                                    group relative flex flex-wrap sm:flex-nowrap gap-y-4 items-center justify-between p-6 rounded-xl border transition-all duration-200
+                                    ${activeLetterId === absoluteId ? "outline-4 outline-blue-800 bg-blue-50" : ""}
                                     ${response
                                         ? "bg-[var(--surface)] border-[var(--foreground)] ring-1 ring-[var(--foreground)] shadow-sm"
                                         : "bg-[var(--surface)] border-[var(--border)] hover:border-[var(--muted)] hover:shadow-sm"
@@ -284,7 +314,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                                 `}
                             >
                                 <div className="flex-1 text-right pr-3">
-                                    <span className="font-mono text-xl font-medium tracking-[0.2em] text-[var(--foreground)] select-none tabular-nums break-all">
+                                    <span className="font-mono text-2xl sm:text-3xl font-semibold tracking-wider text-[var(--foreground)] select-none tabular-nums break-all">
                                         {prob.left}
                                     </span>
                                 </div>
@@ -293,10 +323,11 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                                     <button
                                         type="button"
                                         aria-label="Same (S)"
+                                        aria-pressed={response === "S"}
                                         disabled={isSaving}
-                                        onClick={(event) => handleLetterResponse(event, absoluteId, "S", prob)}
+                                        onClick={(event) => handleLetterResponse(event.timeStamp, absoluteId, "S", prob)}
                                         className={`
-                                            h-10 w-10 rounded-lg text-sm font-semibold transition-all duration-200 border flex items-center justify-center
+                                            h-16 w-16 rounded-lg text-xl font-semibold transition-all duration-200 border flex items-center justify-center
                                             ${response === "S"
                                                 ? "bg-[var(--primary)] text-[var(--primary-fg)] border-[var(--primary)] shadow-sm transform scale-105"
                                                 : "bg-transparent text-[var(--muted)] border-[var(--border)] hover:text-[var(--foreground)] hover:border-[var(--muted)]"
@@ -308,10 +339,11 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                                     <button
                                         type="button"
                                         aria-label="Different (D)"
+                                        aria-pressed={response === "D"}
                                         disabled={isSaving}
-                                        onClick={(event) => handleLetterResponse(event, absoluteId, "D", prob)}
+                                        onClick={(event) => handleLetterResponse(event.timeStamp, absoluteId, "D", prob)}
                                         className={`
-                                            h-10 w-10 rounded-lg text-sm font-semibold transition-all duration-200 border flex items-center justify-center
+                                            h-16 w-16 rounded-lg text-xl font-semibold transition-all duration-200 border flex items-center justify-center
                                             ${response === "D"
                                                 ? "bg-[var(--primary)] text-[var(--primary-fg)] border-[var(--primary)] shadow-sm transform scale-105"
                                                 : "bg-transparent text-[var(--muted)] border-[var(--border)] hover:text-[var(--foreground)] hover:border-[var(--muted)]"
@@ -323,13 +355,13 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                                 </div>
 
                                 <div className="flex-1 text-left pl-3">
-                                    <span className="font-mono text-xl font-medium tracking-[0.2em] text-[var(--foreground)] select-none tabular-nums break-all">
+                                    <span className="font-mono text-2xl sm:text-3xl font-semibold tracking-wider text-[var(--foreground)] select-none tabular-nums break-all">
                                         {prob.right}
                                     </span>
                                 </div>
 
                                 <div className="absolute left-2 top-1/2 -translate-y-1/2">
-                                    <span className="text-[10px] font-mono text-[var(--border)] group-hover:text-[var(--muted)] transition-colors">
+                                    <span className="text-sm font-mono text-[var(--muted)] group-hover:text-[var(--muted)] transition-colors">
                                         {String(absoluteId).padStart(2, '0')}
                                     </span>
                                 </div>

@@ -581,6 +581,17 @@ async function main() {
     try {
         connection = await mysql.createConnection(process.env.MYSQL_URL ? { uri: process.env.MYSQL_URL } : dbConfig);
         console.log('Connected.');
+        if (process.argv.includes("--demographics")) {
+            // Widen storage without rewriting historical responses or reseeding.
+            await connection.query("ALTER TABLE demographics MODIFY COLUMN gender VARCHAR(255) NULL");
+            console.log("Demographics gender storage ready; existing responses preserved.");
+            return;
+        }
+        if (process.argv.includes("--study-responses")) {
+            await connection.query(fs.readFileSync(new URL("./study-text-responses.sql", import.meta.url), "utf8"));
+            console.log("Separate recall and summary storage ready; existing responses preserved.");
+            return;
+        }
         if (process.argv.includes("--participant-details")) {
             const [columns] = await connection.execute<RowDataPacket[]>(
                 "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'participants'"

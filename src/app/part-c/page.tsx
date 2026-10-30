@@ -3,13 +3,12 @@ import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } f
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { createActiveReadingTimer } from "@/lib/active-reading-timer";
-import CountdownTimer from "@/app/components/CountdownTimer";
+import { isStudyVisible } from "@/lib/study-display";
 import { getApiPath } from "@/lib/api";
-import { createLogQueue, createReadingClock, PART_C_DURATION_MS } from "@/lib/part-c-timing";
+import { createLogQueue, createReadingClock } from "@/lib/part-c-timing";
 import type { PartCLogEvent, ReadingDuration } from "@/lib/part-c-timing";
 import ComprehensionQuestions from "./components/ComprehensionQuestions";
-import ReadingTimer from "./components/ReadingTimer";
-import SummaryInput from "@/app/part-a/components/SummaryInput";
+import RecallSummary from "@/app/components/RecallSummary";
 
 // Matches API response structure
 interface Sentence {
@@ -33,11 +32,9 @@ function PartCContent() {
     const participantId = searchParams.get("participant_id");
 
     // States
-    const [step, setStep] = useState<"instructions" | "reading" | "finishing" | "summary" | "questions">("instructions");
-    const [secondsLeft, setSecondsLeft] = useState(PART_C_DURATION_MS / 1000);
-    const [readingTimer] = useState(() => createActiveReadingTimer(PART_C_DURATION_MS));
-    const getReadingTime = useCallback(() => PART_C_DURATION_MS - readingTimer.snapshot(performance.now()).remainingMs, [readingTimer]);
-    const timeoutHandledRef = useRef(false);
+    const [step, setStep] = useState<"instructions" | "reading" | "recall" | "questions">("instructions");
+    const [readingTimer] = useState(() => createActiveReadingTimer(Infinity));
+    const getReadingTime = useCallback(() => readingTimer.snapshot(performance.now()).articleTimeMs, [readingTimer]);
     const [readingPhase, setReadingPhase] = useState<"word-by-word" | "decision">("word-by-word");
 
     // Group sentences by set_id: { [setId]: Sentence[] }
@@ -135,7 +132,7 @@ function PartCContent() {
 
         if (nextId === null) {
             // All sets done
-            setStep("summary");
+            setStep("recall");
             return;
         }
 
@@ -171,34 +168,7 @@ function PartCContent() {
         return saved;
     }, [logQueue]);
 
-    const handleTimeout = useCallback(async () => {
-        if (timeoutHandledRef.current || readingTimer.snapshot(performance.now()).remainingMs > 0) return;
-        readingTimer.pause(performance.now());
-        timeoutHandledRef.current = true;
-        setSecondsLeft(0);
-        setStep("finishing");
-        setIsSaving(true);
-        // The active reading clock is capped at the budget, even for delayed callbacks.
-        const duration = readingPhase === "word-by-word"
-            ? readingClock.finish(getReadingTime(), true)
-            : null;
-        logAction("timeout", duration ? currentWordIndex : null, duration ?? undefined);
-        try {
-            if (await flushLogs()) {
-                pendingDecisionRef.current = null;
-                setStep("summary");
-            }
-        } finally {
-            setIsSaving(false);
-        }
-    }, [readingPhase, readingClock, logAction, currentWordIndex, flushLogs, readingTimer, getReadingTime]);
-
     const handleDecision = useCallback(async (action: "continue" | "switch") => {
-        if (timeoutHandledRef.current) return;
-        if (readingTimer.snapshot(performance.now()).remainingMs === 0) {
-            await handleTimeout();
-            return;
-        }
         if (currentSetId === null || decisionBusyRef.current || decisionTakenRef.current) return;
         decisionBusyRef.current = true;
         setIsSaving(true);
@@ -208,11 +178,6 @@ function PartCContent() {
         }
         try {
             if (!await flushLogs()) return;
-            if (timeoutHandledRef.current) return;
-            if (readingTimer.snapshot(performance.now()).remainingMs === 0) {
-                await handleTimeout();
-                return;
-            }
             const choice = pendingDecisionRef.current;
             pendingDecisionRef.current = null;
             decisionTakenRef.current = true;
@@ -227,22 +192,12 @@ function PartCContent() {
             decisionBusyRef.current = false;
             setIsSaving(false);
         }
-    }, [currentSetId, currentIndex, logAction, flushLogs, startNextSet, handleTimeout, readingTimer]);
+    }, [currentSetId, currentIndex, logAction, flushLogs, startNextSet]);
 
     const handleContinue = useCallback(() => handleDecision("continue"), [handleDecision]);
     const handleSwitch = useCallback(() => handleDecision("switch"), [handleDecision]);
     const retrySaving = async () => {
-        if (timeoutHandledRef.current) {
-            setIsSaving(true);
-            try {
-                if (await flushLogs()) {
-                    pendingDecisionRef.current = null;
-                    setStep("summary");
-                }
-            } finally {
-                setIsSaving(false);
-            }
-        } else if (pendingDecisionRef.current) await handleDecision(pendingDecisionRef.current);
+        if (pendingDecisionRef.current) await handleDecision(pendingDecisionRef.current);
         else await flushLogs();
     };
 
@@ -274,25 +229,19 @@ function PartCContent() {
     useLayoutEffect(() => {
         if (step !== "reading" || readingPhase !== "word-by-word" || !currentSentence) return;
         readingTimer.startArticle("sentence-reading", performance.now());
-        const tick = () => {
-            const { remainingMs } = readingTimer.snapshot(performance.now());
-            setSecondsLeft(Math.ceil(remainingMs / 1000));
-            if (remainingMs === 0) void handleTimeout();
-        };
         const visibilityChanged = () => {
-            if (document.hidden) readingTimer.pause(performance.now());
+            if (!isStudyVisible()) readingTimer.pause(performance.now());
             else readingTimer.resume(performance.now());
-            tick();
         };
         visibilityChanged();
-        const interval = window.setInterval(tick, 100);
         document.addEventListener("visibilitychange", visibilityChanged);
+        document.addEventListener("fullscreenchange", visibilityChanged);
         return () => {
             readingTimer.pause(performance.now());
-            window.clearInterval(interval);
             document.removeEventListener("visibilitychange", visibilityChanged);
+            document.removeEventListener("fullscreenchange", visibilityChanged);
         };
-    }, [step, readingPhase, currentSentence, readingTimer, handleTimeout]);
+    }, [step, readingPhase, currentSentence, readingTimer]);
 
     // Keyboard Listener for SPR (word-by-word phase)
     useEffect(() => {
@@ -302,11 +251,7 @@ function PartCContent() {
             if (e.code === "Space") {
                 e.preventDefault();
 
-                if (e.repeat || e.isComposing || words.length === 0 || timeoutHandledRef.current) return;
-                if (readingTimer.snapshot(performance.now()).remainingMs === 0) {
-                    void handleTimeout();
-                    return;
-                }
+                if (e.repeat || e.isComposing || words.length === 0 || !isStudyVisible()) return;
                 const lastWord = currentWordIndex === words.length - 1;
                 const duration = readingClock.finish(getReadingTime(), lastWord);
                 if (!duration) return;
@@ -317,8 +262,7 @@ function PartCContent() {
                 if (!lastWord) {
                     setCurrentWordIndex(prev => prev + 1);
                 } else {
-                    const { remainingMs } = readingTimer.pause(performance.now());
-                    setSecondsLeft(Math.ceil(remainingMs / 1000));
+                    readingTimer.pause(performance.now());
                     // Finished sentence -> go to decision
                     setReadingPhase("decision");
                 }
@@ -327,14 +271,14 @@ function PartCContent() {
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [step, readingPhase, currentWordIndex, words.length, logAction, flushLogs, readingClock, handleTimeout, readingTimer, getReadingTime]);
+    }, [step, readingPhase, currentWordIndex, words.length, logAction, flushLogs, readingClock, readingTimer, getReadingTime]);
 
     // Keyboard Listener for Decision Phase (F = switch, J = continue)
     useEffect(() => {
         if (step !== "reading" || readingPhase !== "decision") return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.repeat || e.isComposing) return;
+            if (e.repeat || e.isComposing || e.ctrlKey || e.altKey || e.metaKey || !isStudyVisible()) return;
             // Press F to switch to other topic
             if (e.key === "F" || e.key === "f") {
                 e.preventDefault();
@@ -355,10 +299,10 @@ function PartCContent() {
     if (loading) return <div>Loading experiment data...</div>;
     if (!participantId) return <div>Missing Participant ID</div>;
 
-    const cardClass = "max-w-2xl w-full glass-panel p-10 rounded-2xl shadow-sm transition-all duration-300";
-    const buttonBase = "justify-center rounded-lg px-6 py-3 text-sm font-medium shadow-sm transition-all focus:outline-none focus:ring-2 min-w-[160px]";
+    const cardClass = "max-w-4xl w-full glass-panel p-10 rounded-2xl shadow-sm transition-all duration-300";
+    const buttonBase = "justify-center rounded-lg px-8 py-5 text-xl font-semibold shadow-sm transition-all focus:outline-none focus:ring-2 min-w-[240px]";
     const primaryBtn = `${buttonBase} bg-black text-white hover:opacity-90 active:scale-[0.99] focus:ring-black/20`;
-    const outlineBtn = `${buttonBase} bg-white text-black border border-gray-200 hover:bg-gray-50 active:scale-[0.99] focus:ring-gray-200`;
+    const outlineBtn = `${buttonBase} bg-white text-black border-2 border-gray-700 hover:bg-gray-50 active:scale-[0.99] focus:ring-gray-200`;
 
 
     return (
@@ -366,9 +310,9 @@ function PartCContent() {
             {step === "instructions" && (
                 <div className={cardClass}>
                     <h1 className="text-3xl font-semibold mb-6">Part C: Sentence Reading Study</h1>
-                    <div className="text-[var(--muted)] text-base leading-relaxed mb-8 space-y-4">
+                    <div className="text-[var(--foreground)] text-xl leading-relaxed mb-8 space-y-4">
                         <p>In this task, you will read one sentence at a time.</p>
-                        <p>You have <strong>10 minutes</strong> of reading time. The timer starts when the first word appears; instructions, topic choices and questions do not count. When time runs out, you will move on to recall what you read.</p>
+                        <p>There is no overall time limit. Read at your own pace. After the last topic, you will recall what you learned using voice input, then answer comprehension questions.</p>
                         <p>Press the <strong className="text-[var(--foreground)] border border-[var(--border)] px-1 py-0.5 rounded bg-[var(--input-bg)] text-xs uppercase tracking-wider">Spacebar</strong> to reveal each word one by one.</p>
                         <p>After each sentence, you can choose to <strong>Continue reading</strong> more about the topic, or <strong>Switch topic</strong> to read about something else.</p>
                     </div>
@@ -381,11 +325,7 @@ function PartCContent() {
 
                     {/* SPR View - Always visible to maintain layout, but changes state in decision phase */}
                     <div className="max-w-4xl w-full">
-                        <div className="mb-4 flex justify-end">
-                            <CountdownTimer seconds={secondsLeft} label="Reading time remaining" paused={readingPhase === "decision"} />
-                        </div>
                         <div className="glass-panel relative p-16 rounded-2xl shadow-sm min-h-[400px] flex flex-col justify-center items-center">
-                            <ReadingTimer clock={readingClock} getReadingTime={getReadingTime} finished={readingPhase === "decision"} wordKey={`${currentSentence.id}-${currentWordIndex}`} />
                             <div className="flex flex-wrap justify-center gap-x-4 gap-y-8 text-3xl font-mono leading-loose max-w-3xl">
                                 {words.map((word, index) => {
                                     // In decision phase, we hide everything (or show all underscores).
@@ -412,14 +352,14 @@ function PartCContent() {
 
                     <div className="w-full mt-8 min-h-[80px] flex flex-col items-center">
                         {readingPhase === "word-by-word" && (
-                            <p className="text-center text-sm font-medium text-[var(--muted)] uppercase tracking-widest opacity-60">
+                            <p className="text-center text-xl font-semibold text-[var(--foreground)]">
                                 Press Spacebar to advance
                             </p>
                         )}
 
                         {readingPhase === "decision" && (
                             <div className="max-w-3xl w-full flex flex-col items-center gap-4 animate-in fade-in duration-300">
-                                <div className="w-full flex justify-between items-center px-4">
+                                <div className="w-full flex flex-col sm:flex-row justify-between items-stretch gap-6 px-4">
                                     <button type="button" onClick={handleSwitch} disabled={isSaving} className={outlineBtn}>
                                         Go To Other Topics
                                     </button>
@@ -427,23 +367,18 @@ function PartCContent() {
                                         Continue Reading
                                     </button>
                                 </div>
-                                <p className="text-center text-xs font-medium text-[var(--muted)] uppercase tracking-widest opacity-60">
+                                <p className="text-center text-lg font-semibold text-[var(--foreground)]">
                                     Press <strong className="text-[var(--foreground)] border border-[var(--border)] px-1.5 py-0.5 rounded bg-[var(--input-bg)] text-xs uppercase tracking-wider">F</strong> to switch topic or <strong className="text-[var(--foreground)] border border-[var(--border)] px-1.5 py-0.5 rounded bg-[var(--input-bg)] text-xs uppercase tracking-wider">J</strong> to continue
                                 </p>
                             </div>
                         )}
                     </div>
 
-                    <div className="fixed bottom-4 left-4 text-xs text-[var(--muted)] opacity-50">
-                        Debug: Set {currentSetId} | Index {currentIndex} | Phase {readingPhase}
-                    </div>
-                </div>
-            )}
-
-            {step === "finishing" && (
-                <div className={cardClass} role="status">
-                    <h2 className="text-2xl font-semibold mb-3">Time is up</h2>
-                    <p>{isSaving ? "Saving your reading data before recall…" : "Please retry saving below to continue to recall."}</p>
+                    <p className="max-w-4xl w-full mt-6 text-sm text-[var(--muted)] tabular-nums" aria-label="Reading progress">
+                        Topic {allSetIds.indexOf(currentSentence.set_id) + 1} / {allSetIds.length}
+                        {" · "}
+                        Sentence {sentenceSets[currentSentence.set_id].findIndex(sentence => sentence.id === currentSentence.id) + 1} / {sentenceSets[currentSentence.set_id].length}
+                    </p>
                 </div>
             )}
 
@@ -456,9 +391,9 @@ function PartCContent() {
                 </div>
             )}
 
-            {step === "summary" && (
+            {step === "recall" && (
                 <div className="w-full">
-                    <SummaryInput participantId={participantId} part="c" onComplete={() => setStep("questions")} />
+                    <RecallSummary participantId={participantId} part="c" onComplete={() => setStep("questions")} />
                 </div>
             )}
 

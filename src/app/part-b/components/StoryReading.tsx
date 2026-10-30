@@ -1,5 +1,6 @@
 "use client";
 import CountdownTimer from "@/app/components/CountdownTimer";
+import { isStudyVisible } from "@/lib/study-display";
 import { getApiPath } from "@/lib/api";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -50,17 +51,19 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
       }
     };
     const visibilityChanged = () => {
-      if (document.hidden) readingTimer.pause(performance.now());
+      if (!isStudyVisible()) readingTimer.pause(performance.now());
       else readingTimer.resume(performance.now());
       update();
     };
     visibilityChanged();
     const timer = window.setInterval(update, 100);
     document.addEventListener("visibilitychange", visibilityChanged);
+        document.addEventListener("fullscreenchange", visibilityChanged);
     return () => {
       readingTimer.pause(performance.now());
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", visibilityChanged);
+            document.removeEventListener("fullscreenchange", visibilityChanged);
     };
   }, [view, articleKey, readingTimer, onComplete]);
 
@@ -142,12 +145,12 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
   if (view === "selection") {
     const allVisited = stories.length > 0 && stories.every(s => visitedStoryIds.has(s.id));
     return (
-      <div className="w-full h-full flex flex-col p-6">
+      <div className="w-full h-full overflow-y-auto flex flex-col p-6 bg-blue-50">
         <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col">
           <div className="flex justify-between items-end mb-12 border-b border-[var(--border)] pb-6">
             <div>
               <h2 className="text-3xl font-serif font-medium text-[var(--foreground)] mb-2">Library</h2>
-              <p className="text-[var(--muted)]">Choose a story to begin reading.</p>
+              <p className="text-[var(--muted)]">Choose a blue story to begin reading. Green stories have already been visited.</p>
             </div>
             <CountdownTimer seconds={timeLeft} label="Story reading time remaining" paused />
           </div>
@@ -161,10 +164,10 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
                   key={story.id}
                   onClick={() => handleSelectStory(story)}
                   disabled={isLoading}
-                  className={`relative p-8 rounded-xl border text-left transition-all duration-300 flex flex-col justify-between h-48 group overflow-hidden ${
+                  className={`relative p-8 rounded-xl border text-left transition-all duration-300 flex flex-col justify-between min-h-48 group ${
                     isRead
-                      ? "bg-[var(--input-bg)] border-transparent text-[var(--muted)]"
-                      : "bg-[var(--surface)] border-[var(--border)] hover:border-[var(--primary)] hover:shadow-lg hover:-translate-y-1"
+                      ? "bg-emerald-100 border-emerald-800 text-emerald-950"
+                      : "bg-blue-100 border-blue-800 text-blue-950 hover:bg-blue-200 hover:shadow-lg"
                   }`}
                 >
                   <div className="relative z-10">
@@ -175,8 +178,8 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
                   </div>
 
                   {isRead && (
-                    <span className="absolute bottom-6 right-6 text-xs font-bold uppercase tracking-widest text-[var(--muted)] border border-[var(--border)] px-3 py-1 rounded-full">
-                      Completed
+                    <span className="mt-4 self-end shrink-0 whitespace-nowrap rounded-full border border-emerald-800/40 px-3 py-1 text-sm font-semibold leading-none text-emerald-950">
+                      Visited
                     </span>
                   )}
 
@@ -193,9 +196,9 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
               <button
                 type="button"
                 onClick={onComplete}
-                className="bg-[var(--primary)] text-[var(--primary-fg)] px-10 py-4 rounded-full font-medium hover:opacity-90 transition-all shadow-lg hover:shadow-xl active:scale-[0.98] text-sm uppercase tracking-widest"
+                className="bg-[var(--primary)] text-[var(--primary-fg)] px-10 py-4 rounded-full font-medium hover:opacity-90 transition-all shadow-lg hover:shadow-xl active:scale-[0.98] text-sm tracking-widest"
               >
-                Complete Phase
+                Next Task
               </button>
             </div>
           )}
@@ -258,7 +261,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
             Go to Other Stories
           </button>
 
-          <div className="text-[10px] text-[var(--muted)] uppercase tracking-widest hidden md:block">
+          <div className="text-sm text-[var(--muted)] uppercase tracking-widest hidden md:block">
              {currentSegmentIndex + 1} <span className="mx-1 opacity-30">/</span> {segments.length}
           </div>
 
