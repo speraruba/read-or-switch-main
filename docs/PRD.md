@@ -11,9 +11,9 @@ The experiment consists of the following stages:
 1.  **Informed Consent**: Participant agrees to the study terms.
 2.  **Demographic Information**: Collection of basic user data.
 3.  **Part A: Multi-text Learning Study**: Practice (4 minutes) → speech-to-text recall → Formal (15 minutes) → speech-to-text recall → written summary.
-4.  **Part B: Story Reading Study**: Practice (4 minutes, stories with titles) → speech-to-text recall → Formal (15 minutes, stories with titles) → speech-to-text recall → written summary.
+4.  **Part B: Read Short Stories**: Practice (4 reading minutes, rate each story on exit) → speech-to-text recall → Formal (10 reading minutes, rate each story on exit) → speech-to-text recall → written summary.
 5.  **Part C: Sentence Reading Study**: Instructions → reading (no overall time limit) → voice recall → comprehension questions. Part C has no practice/formal split and no written summary.
-6.  **Cognitive Tests**: Letter Comparison (two rounds of ten pairs) → Vocabulary Test.
+6.  **Cognitive Tests**: Speed Task (two rounds of ten pairs) → Verbal Task.
 7.  **Debriefing and Thank You**.
 
 The execution order is A → B → C. The five recalls require speech-to-text, with live read-only transcripts. Written summaries follow formal recalls in Parts A and B only. Part C has one reading task and one recall, without a phase label or written summary. Cognitive tests run after Part C comprehension and before debriefing. Part B comprehension questions and the Final assessment remain outside the current flow.
@@ -39,11 +39,11 @@ The execution order is A → B → C. The five recalls require speech-to-text, w
     -   Topic: "Health task".
     -   Article ratings during the task.
     -   Speech-to-text recall after the task, saved with its practice/formal phase.
-    -   After formal recall, a separate typed summary asks for about 100 words on what the participant remembered most about Bone Graft, Blood Donation, Corneal Transplants, Liver Cancer, and Colorectal Cancer. Keep the length guidance in the instructions without a word-count display below the input; 100 words is guidance, not a hard limit. Save as part `a`, phase `formal`, task `summary`, input method `typed` in `study_text_responses` before continuing to Part B.
+    -   After formal recall, a separate typed summary asks for about 100 words on what the participant found most important or interesting, or remembered most from the health articles. Keep the length guidance in the instructions without a word-count display below the input; 100 words is guidance, not a hard limit. Save as part `a`, phase `formal`, task `summary`, input method `typed` in `study_text_responses` before continuing to Part B.
 
 - **Formal timing**: 15 minutes of cumulative visible article time, using the same pause and timeout rules as Practice. At timeout, save the current article ratings before Formal recall.
 
-### 4.3 Part B: Story Reading Study (Core Task)
+### 4.3 Part B: Read Short Stories (Core Task)
 This part investigates the "foraging" behavior.
 
 #### 4.3.1 Practice Phase
@@ -60,21 +60,20 @@ This part investigates the "foraging" behavior.
     5.  **Decision Point**: After each segment, the user chooses to:
         -   **Continue**: Read the next segment of the current story.
         -   **Switch**: Go back to the main menu to select a different story.
-    6.  **Post-Task**:
-        -   Recall with speech-to-text.
+    6.  On leaving a story, pause the reading timer and rate that story on five 7-point agreement items before returning to the library. At timeout, rate the current story before voice recall.
 
 #### 4.3.2 Formal Task Phase
--   **Duration**: 15 minutes.
+-   **Duration**: 10 minutes.
 -   **Content**: 5 Stories.
 -   **Structure per Story**:
     -   6 text segments per story.
     -   Length: ~220 words per segment (200-250 words).
 -   **Task Flow**: Same as Practice Phase (Select -> Read -> Decide -> Repeat).
 -   **Post-Task**:
-    -   Recall with speech-to-text.
+    -   Complete voice recall, then write a summary (about 60 words).
 
 ### 4.4 Part C: Sentence Reading Study
--   **Timing**: No overall countdown or timeout. Do not display sentence or current-word timers. Continue logging visible word/sentence durations, pausing for decisions, saving, hidden tabs, and fullscreen interruptions. Flush logs before advancing to recall after the final topic.
+-   **Timing**: No overall countdown or timeout. Do not display sentence or current-word timers. Continue logging visible word/sentence durations, from display until advancement or choice, excluding saving, hidden tabs, and fullscreen interruptions. Show decision buttons alongside the final word. Flush logs before advancing to recall after the final topic.
 -   **Progress**: During reading and sentence decisions, show the current topic and sentence positions with totals from the loaded material (for example, `Topic 1 / 16 · Sentence 1 / 6`).
 -   **Stimuli**: 20 sentences total.
 -   **Display Format**:
@@ -85,9 +84,9 @@ This part investigates the "foraging" behavior.
     -   **Comprehension Questions**: User answers questions about the sentences.
 
 ### 4.5 Cognitive Measures
--   After Part C comprehension saves, show Letter Comparison, then Vocabulary.
+-   After Part C comprehension saves, show Speed Task, then Verbal Task.
 -   Save responses, correctness, and reaction times in milliseconds before advancing. Loading or saving failures must not skip a test.
--   **Keyboard**: S = same, D = different, applied to the highlighted pair. Move to the first unanswered pair after each response. Ignore repeats, composition, modifier shortcuts, and input outside fullscreen. Mouse and keyboard share the existing round-start timestamp baseline.
+-   **Keyboard**: S = same, D = different, applied to the highlighted pair. Move to the first unanswered pair after each response. Ignore repeats, composition, modifier shortcuts, and input outside fullscreen. Each round has its own instructions and Start button. Space ends the completed round and records the elapsed time since Start.
 -   Retain the existing `part_a_letter_item` and `part_a_vocabulary_*` tables and records.
 
 ## 5. Content & Stimuli

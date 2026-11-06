@@ -1,6 +1,7 @@
 "use client";
+import TestSkip from "@/app/components/TestSkip";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { ChangeEvent, MouseEvent } from "react";
+import type { ChangeEvent } from "react";
 
 import { isStudyVisible } from "@/lib/study-display";
 import { getApiPath } from "@/lib/api";
@@ -77,15 +78,19 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
     const [letterData, setLetterData] = useState<LetterResponseData[]>([]);
     const [startTime, setStartTime] = useState<number>(0);
 
-    // Vocab Test State
+    const roundDurations = useRef<Record<number, number>>({});
+    const submissionId = useRef<string | null>(null);
+
+    // Verbal Task state
     const [vocabQuestions, setVocabQuestions] = useState<VocabQuestion[]>([]);
     const [vocabResponses, setVocabResponses] = useState<Record<number, string>>({});
     const [vocabData, setVocabData] = useState<VocabResponseData[]>([]);
 
     // Initialize timing when entering a phase
-    const handleLetterStart = (event: MouseEvent<HTMLButtonElement>) => {
+    const startLetterRound = (timestamp: number) => {
+        submissionId.current ??= crypto.randomUUID();
         setSubPhase("letter");
-        setStartTime(event.timeStamp);
+        setStartTime(timestamp);
         window.scrollTo(0, 0);
     };
 
@@ -107,10 +112,9 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
         }
     };
 
-    const handleVocabStart = (event: MouseEvent<HTMLButtonElement>) => {
-        if (isLoadingVocab || vocabError || vocabQuestions.length === 0 || savingRef.current) return;
+    const startVocab = (timestamp: number) => {
         setSubPhase("vocab");
-        setStartTime(event.timeStamp);
+        setStartTime(timestamp);
         window.scrollTo(0, 0);
     };
 
@@ -135,33 +139,29 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
         }
     }, [activeLetterId, subPhase, letterResponses]);
 
-    useEffect(() => {
-        if (subPhase !== "letter" || !activeLetterId) return;
-        const onKeyDown = (event: KeyboardEvent) => {
-            if (event.repeat || event.isComposing || event.ctrlKey || event.altKey || event.metaKey || !isStudyVisible()) return;
-            if (event.target instanceof HTMLElement && (event.target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName))) return;
-            const key = event.key.toUpperCase();
-            if (key !== "S" && key !== "D") return;
-            event.preventDefault();
-            const problem = LETTER_COMPARISON_ROUNDS[currentRound][(activeLetterId - 1) % 10];
-            handleLetterResponse(event.timeStamp, activeLetterId, key, problem);
-        };
-        window.addEventListener("keydown", onKeyDown);
-        return () => window.removeEventListener("keydown", onKeyDown);
-    }, [subPhase, activeLetterId, currentRound, handleLetterResponse]);
+    const nextLetterRound = useCallback(() => {
+        setActiveLetterId(currentRound * 10 + 1);
+        setCurrentRound(prev => prev + 1);
+        setSubPhase("letter-instructions");
+        window.scrollTo(0, 0);
+    }, [currentRound]);
 
-    const handleLetterSubmit = async (event: MouseEvent<HTMLButtonElement>) => {
+    const startVocabInstructions = useCallback(async () => {
+        setSubPhase("vocab-instructions");
+        setStartTime(0);
+        window.scrollTo(0, 0);
+        await fetchVocabQuestions();
+    }, []);
+
+    const handleLetterSubmit = useCallback(async (eventTimestamp: number) => {
         if (savingRef.current || !LETTER_COMPARISON_ROUNDS[currentRound].every((_, index) => letterResponses[(currentRound - 1) * 10 + index + 1])) return;
-        const eventTimestamp = event.timeStamp;
+        roundDurations.current[currentRound] ??= Math.max(0, Math.round(eventTimestamp - startTime));
 
         const totalRounds = Object.keys(LETTER_COMPARISON_ROUNDS).length;
 
         if (currentRound < totalRounds) {
             // Move to next round
-            setActiveLetterId(currentRound * 10 + 1);
-            setCurrentRound(prev => prev + 1);
-            setStartTime(eventTimestamp); // Reset timer for next round
-            window.scrollTo(0, 0); // Scroll to top for new round
+            nextLetterRound();
         } else {
             // Submit all data and move to Vocab
             savingRef.current = true;
@@ -170,17 +170,14 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                 const res = await fetch(getApiPath("/api/part-a/cognitive/letter"), {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ participantId, responses: letterData })
+                    body: JSON.stringify({ participantId, responses: letterData, roundDurations: roundDurations.current, submissionId: submissionId.current })
                 });
 
                 if (!res.ok) {
                     throw new Error(`Server responded with ${res.status}`);
                 }
 
-                setSubPhase("vocab-instructions");
-                setStartTime(0);
-                window.scrollTo(0, 0);
-                await fetchVocabQuestions();
+                await startVocabInstructions();
             } catch (e) {
                 console.error(e);
                 alert("Failed to save letter data. Please try again.");
@@ -189,7 +186,27 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                 setIsSaving(false);
             }
         }
-    };
+    }, [currentRound, letterResponses, startTime, participantId, letterData, nextLetterRound, startVocabInstructions]);
+
+    useEffect(() => {
+        if (subPhase !== "letter") return;
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.repeat || event.isComposing || event.ctrlKey || event.altKey || event.metaKey || !isStudyVisible()) return;
+            if (event.target instanceof HTMLElement && (event.target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName))) return;
+            const key = event.key.toUpperCase();
+            if (event.code === "Space") {
+                event.preventDefault();
+                if (!activeLetterId) void handleLetterSubmit(event.timeStamp);
+                return;
+            }
+            if (!activeLetterId || (key !== "S" && key !== "D")) return;
+            event.preventDefault();
+            const problem = LETTER_COMPARISON_ROUNDS[currentRound][(activeLetterId - 1) % 10];
+            handleLetterResponse(event.timeStamp, activeLetterId, key, problem);
+        };
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [subPhase, activeLetterId, currentRound, handleLetterResponse, handleLetterSubmit]);
 
     const handleVocabResponse = (event: ChangeEvent<HTMLInputElement>, id: number, val: string) => {
         if (savingRef.current) return;
@@ -237,40 +254,48 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
         }
     };
 
+    const skip = <TestSkip participantId={participantId} disabled={isSaving} onSkip={() => {
+        if (subPhase === "letter-instructions") startLetterRound(performance.now());
+        else if (subPhase === "letter" && currentRound === 1) {
+            // Omit the skipped round if the tester later submits a completed round two.
+            setLetterData([]);
+            nextLetterRound();
+        } else if (subPhase === "letter") void startVocabInstructions();
+        else if (subPhase === "vocab-instructions") startVocab(performance.now());
+        else onComplete();
+    }} />;
+
     if (subPhase === "letter-instructions" || subPhase === "vocab-instructions") {
         const isLetter = subPhase === "letter-instructions";
         return (
             <section aria-labelledby="task-instructions-title" className="max-w-2xl mx-auto glass-panel p-6 sm:p-10 rounded-xl shadow-sm mt-8 sm:mt-12">
+                {skip}
                 <p className="text-sm font-medium text-[var(--muted)] mb-3">Cognitive Test · Task {isLetter ? "1" : "2"} of 2</p>
-                <h2 id="task-instructions-title" className="text-3xl font-semibold mb-6 tracking-tight text-[var(--foreground)]">{isLetter ? "Letter Comparison" : "Vocab Test"}</h2>
+                <h2 id="task-instructions-title" className="text-3xl font-semibold mb-6 tracking-tight text-[var(--foreground)]">{isLetter ? "Speed Task" : "Verbal Task"}</h2>
                 <h3 className="font-semibold mb-3">Instructions</h3>
                 <div className="mb-8 text-[var(--muted)] text-base leading-relaxed space-y-4">
                     {isLetter ? <>
-                        <p>Compare each pair of letter strings and decide whether they are exactly the same or different.</p>
-                        <ul className="list-disc pl-5 space-y-2">
-                            <li>Press <strong>S (Same)</strong> if every letter matches in the same order.</li>
-                            <li>Press <strong>D (Different)</strong> if any letter or its position is different.</li>
-                        </ul>
-                        <p>There are two rounds of 10 pairs. Answer every pair, then select <strong>Next Round</strong> or <strong>Complete Letter Comparison</strong>.</p>
-                        <p>The highlighted pair receives your keyboard answer. After each answer, the highlight moves to the next unanswered pair. You can also use the on-screen S and D buttons.</p>
-                        <p>For example: ABC / ABC = S (Same); ABC / ADC = D (Different).</p>
-                        <p>Work as quickly and accurately as you can.</p>
+                        <p>{currentRound === 1 ? "In the next task," : "And the same thing again,"} you will be asked to determine whether two letter strings are exactly the same or different. If these two letter strings are exactly the same, please press “S” on your keyboard. If they are different, please select “D” on your keyboard. Please do as fast as you can. Once you finish the task, please press the “Space Bar” to proceed. We will record the time you complete the task.</p>
+                        <p>Please do as quickly and accurately as you can using your keyboard.</p>
+                        <p>When you are ready, please press the “Start” button.</p>
                     </> : <>
-                        <p>This task tests your knowledge of word meanings. For each word, select the option with the same or nearly the same meaning.</p>
-                        <p>Choose one answer for each word. If you are unsure, select <strong>Not sure about the answer</strong> instead of guessing.</p>
-                        <p>Answer every question, then select <strong>Finish Vocab Test</strong>.</p>
+                        <p>This is a test of your knowledge of word meanings. One of the five words has the same meaning or nearly the same meaning as the word above. Choose the one that that has the closest meaning.</p>
+                        <p>Your score will be the number marked correctly minus a fraction of the number marked incorrectly. Therefore, it will NOT be to your advantage to guess. If you don’t know the answer, please select “Not Sure about the answer”.</p>
                     </>}
-                    <p className="text-sm">Take your time reading these instructions. Timing begins when you select the start button below.</p>
                 </div>
                 {!isLetter && isLoadingVocab && <p className="mb-4 text-sm" role="status">Loading vocabulary questions…</p>}
                 {!isLetter && vocabError && <div className="mb-4" role="alert"><p>Vocabulary questions could not be loaded.</p><button type="button" onClick={fetchVocabQuestions} className="mt-2 underline focus-ring">Retry loading questions</button></div>}
                 <button
                     type="button"
-                    onClick={isLetter ? handleLetterStart : handleVocabStart}
+                    autoFocus={isLetter}
+                    onClick={event => {
+                        if (isLetter) startLetterRound(event.timeStamp);
+                        else startVocab(event.timeStamp);
+                    }}
                     disabled={!isLetter && (isSaving || isLoadingVocab || vocabError || vocabQuestions.length === 0)}
                     className="bg-[var(--primary)] text-[var(--primary-fg)] px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-all focus-ring disabled:opacity-50"
                 >
-                    {isLetter ? "Start Letter Comparison" : "Start Vocab Test"}
+                    Start
                 </button>
             </section>
         );
@@ -283,12 +308,13 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
 
         return (
             <div className="max-w-6xl mx-auto mt-16 px-4 pb-20">
+                {skip}
                 <div className="text-center mb-12 space-y-3">
                     <p className="text-sm font-medium text-[var(--muted)]">Cognitive Test · Task 1 of 2</p>
                     <h2 className="text-2xl font-semibold tracking-tight text-[var(--foreground)]">
-                        Letter Comparison <span className="font-normal text-[var(--muted)] mx-2">/</span> Round {currentRound}
+                        Speed Task <span className="font-normal text-[var(--muted)] mx-2">/</span> Round {currentRound}
                     </h2>
-                    <p className="text-[var(--muted)]">Press S = Same or D = Different for the highlighted pair. The highlight moves to the next unanswered pair. You may also use the buttons.</p>
+                    <p className="text-[var(--muted)]">Press S = Same or D = Different for the highlighted pair. The highlight moves to the next unanswered pair.</p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">
@@ -300,10 +326,9 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                             <div
                                 key={absoluteId}
                                 ref={activeLetterId === absoluteId ? activePairRef : undefined}
-                                tabIndex={0}
+                                tabIndex={-1}
                                 role="group"
-                                onFocus={(event) => { if (event.target === event.currentTarget) setActiveLetterId(absoluteId); }}
-                                aria-label={`Pair ${absoluteId}. ${activeLetterId === absoluteId ? "Press S for same or D for different." : "Select to answer using S or D."}`}
+                                aria-label={`Pair ${absoluteId}. ${activeLetterId === absoluteId ? "Press S for same or D for different." : response || "Unanswered."}`}
                                 className={`
                                     group relative flex flex-wrap sm:flex-nowrap gap-y-4 items-center justify-between p-6 rounded-xl border transition-all duration-200
                                     ${activeLetterId === absoluteId ? "outline-4 outline-blue-800 bg-blue-50" : ""}
@@ -319,40 +344,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                                     </span>
                                 </div>
 
-                                <div className="flex items-center gap-2 shrink-0 z-10">
-                                    <button
-                                        type="button"
-                                        aria-label="Same (S)"
-                                        aria-pressed={response === "S"}
-                                        disabled={isSaving}
-                                        onClick={(event) => handleLetterResponse(event.timeStamp, absoluteId, "S", prob)}
-                                        className={`
-                                            h-16 w-16 rounded-lg text-xl font-semibold transition-all duration-200 border flex items-center justify-center
-                                            ${response === "S"
-                                                ? "bg-[var(--primary)] text-[var(--primary-fg)] border-[var(--primary)] shadow-sm transform scale-105"
-                                                : "bg-transparent text-[var(--muted)] border-[var(--border)] hover:text-[var(--foreground)] hover:border-[var(--muted)]"
-                                            }
-                                        `}
-                                    >
-                                        S
-                                    </button>
-                                    <button
-                                        type="button"
-                                        aria-label="Different (D)"
-                                        aria-pressed={response === "D"}
-                                        disabled={isSaving}
-                                        onClick={(event) => handleLetterResponse(event.timeStamp, absoluteId, "D", prob)}
-                                        className={`
-                                            h-16 w-16 rounded-lg text-xl font-semibold transition-all duration-200 border flex items-center justify-center
-                                            ${response === "D"
-                                                ? "bg-[var(--primary)] text-[var(--primary-fg)] border-[var(--primary)] shadow-sm transform scale-105"
-                                                : "bg-transparent text-[var(--muted)] border-[var(--border)] hover:text-[var(--foreground)] hover:border-[var(--muted)]"
-                                            }
-                                        `}
-                                    >
-                                        D
-                                    </button>
-                                </div>
+                                <span className="min-w-12 text-center font-mono font-semibold" aria-label="Response">{response || "—"}</span>
 
                                 <div className="flex-1 text-left pl-3">
                                     <span className="font-mono text-2xl sm:text-3xl font-semibold tracking-wider text-[var(--foreground)] select-none tabular-nums break-all">
@@ -370,22 +362,9 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
                     })}
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[var(--background)] to-transparent pointer-events-none">
-                    <div className="max-w-4xl mx-auto pointer-events-auto flex justify-center">
-                        <button
-                            type="button"
-                            onClick={handleLetterSubmit}
-                            disabled={isSaving || !currentProblems.every((_, index) => letterResponses[idOffset + index + 1])}
-                            className="bg-[var(--primary)] text-[var(--primary-fg)] px-8 py-3 rounded-full font-medium hover:opacity-90 transition-all shadow-lg hover:shadow-xl focus-ring flex items-center gap-2 transform active:scale-95"
-                        >
-                            {isSaving ? "Saving…" : currentRound < Object.keys(LETTER_COMPARISON_ROUNDS).length ? (
-                                <>Next Round <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></>
-                            ) : (
-                                <>Complete Letter Comparison <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></>
-                            )}
-                        </button>
-                    </div>
-                </div>
+                {!activeLetterId && <p role="status" className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-lg bg-[var(--primary)] px-6 py-3 text-white">
+                    {isSaving ? "Saving…" : "Once you finish the task, please press the “Space Bar” to proceed."}
+                </p>}
 
                 <div className="h-24" />
             </div>
@@ -395,10 +374,11 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
     if (subPhase === "vocab") {
         return (
             <div className="max-w-6xl mx-auto glass-panel p-10 rounded-xl shadow-sm mt-12">
+                {skip}
                 <div className="mb-8 border-l-4 border-[var(--foreground)] pl-4">
                     <p className="text-sm font-medium text-[var(--muted)] mb-3">Cognitive Test · Task 2 of 2</p>
-                    <h2 className="text-2xl font-semibold mb-4 text-[var(--foreground)]">Vocab Test</h2>
-                    <p className="text-[var(--muted)]">Choose the closest meaning, or select &quot;Not sure about the answer&quot; if you are unsure.</p>
+                    <h2 className="text-2xl font-semibold mb-4 text-[var(--foreground)]">Verbal Task</h2>
+                    <p className="text-[var(--muted)]">Choose the closest meaning, or select &quot;Not Sure about the answer&quot; if you are unsure.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -427,7 +407,7 @@ export default function CognitiveTests({ participantId, onComplete }: CognitiveT
 
                 <div className="text-center mt-12">
                     <button type="button" onClick={handleVocabSubmit} disabled={isSaving || isLoadingVocab || vocabError || vocabQuestions.length === 0 || !vocabQuestions.every(q => vocabResponses[q.id])} className="bg-[var(--primary)] text-[var(--primary-fg)] px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-all focus-ring shadow-sm disabled:opacity-50">
-                        {isSaving ? "Saving…" : "Finish Vocab Test"}
+                        {isSaving ? "Saving…" : "Next"}
                     </button>
                 </div>
             </div>

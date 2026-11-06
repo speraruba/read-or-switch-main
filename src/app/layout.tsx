@@ -28,7 +28,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <FullscreenGuard>{children}</FullscreenGuard>
+        <FullscreenGuard>
+          {children}
+          <div id="study-test-navigation" />
+        </FullscreenGuard>
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
 "use client";
+import TestSkip from "@/app/components/TestSkip";
 import { getApiPath } from "@/lib/api";
 
 import { useState, useEffect } from "react";
@@ -70,9 +71,12 @@ export default function ComprehensionQuestions({ participantId, onComplete }: Pa
 
     const allAnswered = questions.length > 0 && questions.every(q => responses[q.id]);
 
+    const skip = <TestSkip participantId={participantId} onSkip={onComplete} disabled={isSubmitting} />;
+
     if (questions.length === 0) {
         return (
             <div className="max-w-xl mx-auto glass-panel p-8 rounded-xl shadow-sm mt-12 text-center text-[var(--muted)]">
+                {skip}
                 <p>Loading questions...</p>
             </div>
         );
@@ -80,6 +84,7 @@ export default function ComprehensionQuestions({ participantId, onComplete }: Pa
 
     return (
         <div className="max-w-5xl mx-auto glass-panel p-10 rounded-xl shadow-sm mt-12">
+            {skip}
             <h2 className="text-2xl font-semibold mb-6 text-[var(--foreground)]">Comprehension Questions</h2>
             <p className="mb-8 text-[var(--muted)] text-base">Please answer the following questions based on what you read.</p>
 

@@ -2,11 +2,11 @@
 
 import { useId, useState } from "react";
 
-import { getReadingRatingQuestions, READING_RATING_INSTRUCTION, type ReadingPhase } from "@/lib/reading-ratings";
+import { getReadingRatingQuestions, READING_RATING_INSTRUCTION } from "@/lib/reading-ratings";
 
-export default function RatingDemo({ phase }: { phase?: ReadingPhase }): React.JSX.Element {
+export default function RatingDemo(): React.JSX.Element {
     const id = useId();
-    const questions = getReadingRatingQuestions(phase);
+    const questions = getReadingRatingQuestions();
     const [values, setValues] = useState([50, 50, 50, 50]);
     return <div className="rounded-xl border-2 border-blue-800 bg-blue-50 p-6 my-6 text-left space-y-8">
         <p className="font-semibold text-blue-950">Try moving the circles below. These practice ratings are not saved.</p>

@@ -13,10 +13,12 @@
     "db:migrate:part-c-recall": "node --experimental-strip-types src/db/migrate.ts --part-c-recall",
     "db:migrate:part-a-recall-phases": "node --experimental-strip-types src/db/migrate.ts --part-a-recall-phases",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test:concurrency": "node --env-file=.env.local scripts/test-concurrent-submissions.mjs",
     "test:one": "node --experimental-strip-types --test",
     "db:migrate:production": "node src/db/upgrade-production.mjs",
     "db:migrate:participant-details": "node --experimental-strip-types src/db/migrate.ts --participant-details",
     "db:migrate:demographics": "node --experimental-strip-types src/db/migrate.ts --demographics",
+    "db:migrate:story-ratings-and-speed": "node --experimental-strip-types src/db/migrate.ts --story-ratings-and-speed",
     "db:migrate:study-responses": "node --experimental-strip-types src/db/migrate.ts --study-responses"
   },
   "dependencies": {

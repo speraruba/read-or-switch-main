@@ -1,4 +1,5 @@
 "use client";
+import TestSkip from "@/app/components/TestSkip";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -118,6 +119,7 @@ function DemographicsForm() {
     if (!hasStarted) {
         return (
             <div className="min-h-screen flex items-center justify-center p-6">
+                <TestSkip participantId={participantId} onSkip={handleStart} />
                 <div className="max-w-md w-full glass-panel p-10 rounded-2xl shadow-lg text-center">
                     <h1 className="text-2xl font-bold mb-4 text-[var(--foreground)]">Welcome</h1>
                     <p className="text-[var(--muted)] mb-8">
@@ -142,6 +144,7 @@ function DemographicsForm() {
 
     return (
         <div className="min-h-screen p-6 sm:p-12">
+            <TestSkip participantId={participantId} onSkip={() => router.push(`/part-a?participant_id=${participantId}`)} disabled={isSubmitting} />
             <div className="mx-auto max-w-3xl glass-panel rounded-2xl shadow-sm p-8 sm:p-10">
                 <h1 className="mb-2 text-3xl font-semibold text-[var(--foreground)]">Demographic Information</h1>
                 <p className="mb-10 text-[var(--muted)]">Please answer the following questions:</p>

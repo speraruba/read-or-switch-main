@@ -1,10 +1,12 @@
 "use client";
+import TestSkip from "@/app/components/TestSkip";
 import CountdownTimer from "@/app/components/CountdownTimer";
 import { isStudyVisible } from "@/lib/study-display";
 import { getApiPath } from "@/lib/api";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createActiveReadingTimer } from "@/lib/active-reading-timer";
+import StorySurvey from "./StorySurvey";
 import type { Segment, Story } from "../types";
 
 interface StoryReadingProps {
@@ -18,7 +20,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
   const [stories, setStories] = useState<Story[]>([]);
   const [visitedStoryIds, setVisitedStoryIds] = useState<Set<number>>(new Set());
 
-  const [view, setView] = useState<"selection" | "reading">("selection");
+  const [view, setView] = useState<"selection" | "reading" | "survey" | "final-survey">("selection");
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
   const [segments, setSegments] = useState<Segment[]>([]);
   const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
@@ -29,7 +31,6 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
   const [isLoading, setIsLoading] = useState(false);
   const currentSegment = segments[currentSegmentIndex];
   const articleKey = currentStory && currentSegment ? `${currentStory.id}:${currentSegment.id}` : null;
-  const completedRef = useRef(false);
 
   useEffect(() => {
     fetch(getApiPath(`/api/part-b/stories?phase=${phase}&participantId=${participantId}`))
@@ -44,10 +45,9 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
     const update = () => {
       const { remainingMs } = readingTimer.snapshot(performance.now());
       setTimeLeft(Math.ceil(remainingMs / 1000));
-      if (remainingMs === 0 && !completedRef.current) {
+      if (remainingMs === 0) {
         readingTimer.pause(performance.now());
-        completedRef.current = true;
-        onComplete();
+        setView("final-survey");
       }
     };
     const visibilityChanged = () => {
@@ -58,14 +58,14 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
     visibilityChanged();
     const timer = window.setInterval(update, 100);
     document.addEventListener("visibilitychange", visibilityChanged);
-        document.addEventListener("fullscreenchange", visibilityChanged);
+    document.addEventListener("fullscreenchange", visibilityChanged);
     return () => {
       readingTimer.pause(performance.now());
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", visibilityChanged);
-            document.removeEventListener("fullscreenchange", visibilityChanged);
+      document.removeEventListener("fullscreenchange", visibilityChanged);
     };
-  }, [view, articleKey, readingTimer, onComplete]);
+  }, [view, articleKey, readingTimer]);
 
   const logAction = async (storyId: number, segmentId: number, type: "continue" | "switch" | "start_story") => {
     try {
@@ -76,7 +76,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
   };
 
   const handleSelectStory = async (story: Story) => {
-    if (loadingRef.current || completedRef.current) return;
+    if (loadingRef.current || visitedStoryIds.has(story.id)) return;
     loadingRef.current = true;
     setIsLoading(true);
     setCurrentStory(story);
@@ -89,6 +89,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
       const data = await res.json();
 
       if (Array.isArray(data) && data.length > 0) {
+        setVisitedStoryIds(previous => new Set(previous).add(story.id));
         setSegments(data);
         setView("reading");
         logAction(story.id, data[0]?.id, "start_story");
@@ -127,25 +128,35 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
   const finishStory = () => {
     const { remainingMs } = readingTimer.pause(performance.now());
     setTimeLeft(Math.ceil(remainingMs / 1000));
-    if (remainingMs === 0) {
-      if (!completedRef.current) {
-        completedRef.current = true;
-        onComplete();
-      }
-      return;
-    }
-    if (currentStory) {
-      setVisitedStoryIds(prev => new Set(prev).add(currentStory.id));
-    }
-    setView("selection");
-    setCurrentStory(null);
-    setSegments([]);
+    setView(remainingMs === 0 ? "final-survey" : "survey");
   };
+
+  if ((view === "survey" || view === "final-survey") && currentStory) {
+    return (
+      <div className="h-full overflow-y-auto">
+        <header className="flex justify-between gap-4 border-b border-[var(--border)] px-6 py-4">
+          <span>ID: {participantId}</span>
+          <span>Part B · {phase === "practice" ? "Practice Survey" : "Formal Survey"}</span>
+        </header>
+        <div className="p-6">
+          <StorySurvey participantId={participantId} phase={phase} story={currentStory} onComplete={() => {
+            if (view === "final-survey") onComplete();
+            else {
+              setCurrentStory(null);
+              setSegments([]);
+              setView("selection");
+            }
+          }} />
+        </div>
+      </div>
+    );
+  }
 
   if (view === "selection") {
     const allVisited = stories.length > 0 && stories.every(s => visitedStoryIds.has(s.id));
     return (
       <div className="w-full h-full overflow-y-auto flex flex-col p-6 bg-blue-50">
+        <TestSkip participantId={participantId} onSkip={onComplete} />
         <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col">
           <div className="flex justify-between items-end mb-12 border-b border-[var(--border)] pb-6">
             <div>
@@ -163,7 +174,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
                   type="button"
                   key={story.id}
                   onClick={() => handleSelectStory(story)}
-                  disabled={isLoading}
+                  disabled={isLoading || isRead}
                   className={`relative p-8 rounded-xl border text-left transition-all duration-300 flex flex-col justify-between min-h-48 group ${
                     isRead
                       ? "bg-emerald-100 border-emerald-800 text-emerald-950"
@@ -211,6 +222,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
 
   return (
     <div className="fixed inset-0 z-50 bg-[var(--surface)] flex flex-col h-screen w-screen">
+      <TestSkip participantId={participantId} onSkip={() => setView("final-survey")} />
       <div className="shrink-0 h-16 flex items-center justify-between px-6 border-b border-[var(--border)] bg-[var(--surface)]/80 backdrop-blur-md z-20">
         <div className="flex items-center gap-4">
           <span className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] border border-[var(--border)] px-2 py-0.5 rounded">
@@ -256,7 +268,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
           <button
             type="button"
             onClick={handleSwitch}
-            className="border-2 border-[var(--primary)] text-[var(--primary)] px-8 py-3 rounded-lg hover:bg-[var(--primary)] hover:text-[var(--primary-fg)] active:scale-[0.98] transition-all font-semibold text-sm shadow-sm hover:shadow-md focus-ring uppercase tracking-widest"
+            className="border-2 border-[var(--primary)] text-[var(--primary)] px-8 py-3 rounded-lg hover:bg-[var(--primary)] hover:text-[var(--primary-fg)] active:scale-[0.98] transition-all font-semibold text-sm shadow-sm hover:shadow-md focus-ring"
           >
             Go to Other Stories
           </button>
@@ -268,10 +280,10 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
           <button
             type="button"
             onClick={handleContinue}
-            disabled={!currentSegment}
-            className="bg-[var(--primary)] text-[var(--primary-fg)] px-8 py-3 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all font-semibold text-sm shadow-md hover:shadow-lg focus-ring uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!currentSegment || currentSegmentIndex === segments.length - 1}
+            className="bg-[var(--primary)] text-[var(--primary-fg)] px-8 py-3 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all font-semibold text-sm shadow-md hover:shadow-lg focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Continue Reading this Story
+            Continue with Next Chapter
           </button>
         </div>
       </div>

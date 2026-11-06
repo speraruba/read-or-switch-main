@@ -6,18 +6,18 @@ import mysql, { type RowDataPacket, type ResultSetHeader } from 'mysql2/promise'
 const envPath = path.resolve(process.cwd(), '.env.local');
 console.log(`Loading env from ${envPath}`);
 
-if (fs.existsSync(envPath)) {
+if (process.env.NODE_ENV !== "production" && fs.existsSync(envPath)) {
     const envConfig = fs.readFileSync(envPath, 'utf8');
     envConfig.split('\n').forEach((line) => {
         const match = line.match(/^([^=]+)=(.*)$/);
         if (match) {
             const key = match[1].trim();
             const value = match[2].trim().replace(/^['"]|['"]$/g, '');
-            process.env[key] = value;
+            process.env[key] ??= value;
         }
     });
 } else {
-    console.log(".env.local not found — using process env directly.");
+    console.log("Using process environment for migration.");
 }
 
 const dbConfig = {
@@ -157,6 +157,7 @@ async function populatePartB(connection: mysql.Connection) {
     await connection.query("SET FOREIGN_KEY_CHECKS = 0");
 
     // Clear existing data
+    await connection.query('TRUNCATE TABLE part_b_story_ratings');
     await connection.query('TRUNCATE TABLE part_b_formal_responses');
     await connection.query('TRUNCATE TABLE part_b_formal_questions');
     await connection.query('TRUNCATE TABLE part_b_formal_actions');
@@ -585,6 +586,15 @@ async function main() {
             // Widen storage without rewriting historical responses or reseeding.
             await connection.query("ALTER TABLE demographics MODIFY COLUMN gender VARCHAR(255) NULL");
             console.log("Demographics gender storage ready; existing responses preserved.");
+            return;
+        }
+        if (process.argv.includes("--story-ratings-and-speed")) {
+            await connection.query(fs.readFileSync(new URL("./story-ratings.sql", import.meta.url), "utf8"));
+            const [columns] = await connection.execute<RowDataPacket[]>(
+                "SHOW COLUMNS FROM part_a_letter_item LIKE 'round_completion_time_ms'"
+            );
+            if (!columns.length) await connection.query("ALTER TABLE part_a_letter_item ADD COLUMN round_completion_time_ms INT UNSIGNED NULL");
+            console.log("Story ratings and speed task timing storage ready.");
             return;
         }
         if (process.argv.includes("--study-responses")) {

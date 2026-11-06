@@ -23,6 +23,7 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 
 ## 2) Tests
 - Node built-in tests (Node 22.6+): `npm test`.
+- Ten-user MySQL regression: `npm run build && node scripts/package-standalone.mjs && npm run test:concurrency`. Uses a temporary local database, the packaged server, and independent participant IDs. The local DB user needs CREATE/DROP DATABASE privileges.
 - Active reading timer: `npm run test:one -- tests/active-reading-timer.test.mjs`.
 - Single file: `npm run test:one -- tests/part-c-timing.test.mjs`.
 - Existing databases: `npm run db:migrate:part-c-timing` adds timing columns without resetting tables.
@@ -30,12 +31,14 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Part C recall storage: `npm run db:migrate:part-c-recall` creates the summary table without resetting data.
 - Participant details: `npm run db:migrate:participant-details` adds the name field and removes the placeholder email default, preserving existing records. Entry requires Participant ID, matching confirmation, and consent; existing name/email records are preserved.
 - Recall/Summary storage: `npm run db:migrate:study-responses` adds `study_text_responses` without changing legacy responses. Included in production upgrade. New records identify part, phase, task, input method, and retry-safe submission ID.
+- Part B runs for 4/10 active reading minutes (practice/formal). In both rounds, leaving a story opens its five-item 1–7 survey before returning to the library. Timeout opens the current story’s survey before recall. Speed Task uses S/D and Space, with round completion times measured from each Start. Existing installations: `npm run db:migrate:story-ratings-and-speed` (included in the production upgrade).
 - Recall/Summary validation: `npm run test:one -- tests/study-response.test.mjs`.
+- Test navigation: sign in on the welcome page as Participant ID `88888888` to enable Skip in that tab. Skipping moves through the study without submitting answers for the skipped page.
 - Registration validation: `npm run test:one -- tests/participant-registration.test.mjs`.
 - Demographics: `npm run db:migrate:demographics` widens gender storage without resetting data; included in production upgrade. Run before serving the four gender options. Validate with `npm run test:one -- tests/demographics.test.mjs`.
 - Gender options are Male, Female, Non-binary, Prefer not to say (user-authorized study wording). Ethnicity retains Hispanic/Latino Yes/No and all six race choices, including Multiple categories, from the local CogSearch template; that template only had two genders.
 - Also validate changes via lint + build and focused manual checks of routes/components.
-- Reading rating wording/order follows the legacy `prac_c1–c4` / `task_c1–c4` pages. Display ease first but keep storage IDs unchanged (`c2` ease, `c1` novelty, `c3` article learning, `c4` overall learning). Check with `npm run test:one -- tests/reading-ratings.test.mjs`.
+- Reading rating order follows the legacy `prac_c1–c4` / `task_c1–c4` pages. Both phases use the revised cumulative-learning question. Display ease first but keep storage IDs unchanged (`c2` ease, `c1` novelty, `c3` article learning, `c4` overall learning). Check with `npm run test:one -- tests/reading-ratings.test.mjs`.
 
 ## 3) Linting & formatting
 - ESLint flat config: `eslint.config.mjs` using `eslint-config-next` core-web-vitals + TypeScript, adapted with `FlatCompat` from `@eslint/eslintrc` for ESLint 9.
@@ -54,7 +57,7 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - MySQL via `mysql2/promise`; shared pool in `src/lib/db.ts` (connectionLimit 10).
 - Use `query(sql, params)` helper; always parameterize inputs. Never interpolate user data into SQL strings.
 - For typed results, use `RowDataPacket` (mysql2) and narrow to typed arrays/records.
-- Use `pool.getConnection()` for transactions and release in `finally`.
+- Use `withParticipantTransaction` for answer writes that check existing rows before inserting. It locks the participant row and releases the connection in `finally`. Demographics uses transaction-scoped READ COMMITTED so concurrent participants can replace their own ratings.
 - `.env.local` required for DB creds; never commit secrets. Migration script reads it manually.
 - Migrations/seeds consume CSVs under `docs/Study Material/*`; scripts are TypeScript run with tsx.
 - When schema changes, update `src/db/migrate.ts` and CSV-driven seeders together; keep FK toggles consistent.
@@ -119,7 +122,7 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Ensure required env vars exist before DB actions; never hardcode secrets.
 
 ## 15) Database & seeding safety
-- Seed endpoints truncate tables and toggle FK checks—use only in dev.
+- Seed endpoints truncate tables and toggle FK checks in development. All five endpoints return 404 in production.
 - Migration script loads `.env.local` manually; ensure it exists before `npx tsx src/db/migrate.ts`.
 - Connection pool is small; avoid long-held connections/transactions in API routes.
 

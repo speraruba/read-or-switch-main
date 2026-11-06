@@ -25,9 +25,9 @@ export async function POST(request: Request): Promise<Response> {
     knowledge,
   } = body;
 
-  if (!participantId) {
+  if (typeof participantId !== "string" || !/^\d{1,19}$/.test(participantId) || BigInt(participantId) > BigInt("9223372036854775807")) {
     return NextResponse.json(
-      { error: "Missing participant ID" },
+      { error: "Invalid participant ID" },
       { status: 400 },
     );
   }
@@ -37,10 +37,27 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: categoryError }, { status: 400 });
   }
 
+  if (!knowledge || typeof knowledge !== "object" || Array.isArray(knowledge)) {
+    return NextResponse.json({ error: "Invalid knowledge ratings" }, { status: 400 });
+  }
+  const knowledgeRatings = new Map<string, number>();
+  for (const [topic, value] of Object.entries(knowledge)) {
+    if ((typeof value !== "string" && typeof value !== "number") || !/^[1-7]$/.test(String(value))) {
+      return NextResponse.json({ error: "Invalid knowledge rating" }, { status: 400 });
+    }
+    knowledgeRatings.set(topic, Number(value));
+  }
   const connection = await pool.getConnection();
 
-  try {
+  // The participant upsert serializes submissions for the same ID. READ COMMITTED
+  // prevents empty-range deletes from blocking inserts for other participants.
+  const beginSave = async () => {
+    await connection.query("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
     await connection.beginTransaction();
+  };
+
+  try {
+    await beginSave();
 
     // 1. Insert Participant (with conditions)
     const pid = BigInt(participantId);
@@ -81,7 +98,7 @@ export async function POST(request: Request): Promise<Response> {
         }
 
         // Restart transaction
-        await connection.beginTransaction();
+        await beginSave();
         await connection.execute(
           `INSERT INTO participants (participant_id, part2_condition, part1_condition)
                      VALUES (?, ?, ?)
@@ -162,7 +179,7 @@ export async function POST(request: Request): Promise<Response> {
     addTopicsToMap(topicsB);
     addTopicsToMap(subtopicsC);
 
-    for (const [topicName, rating] of Object.entries(knowledge)) {
+    for (const [topicName, rating] of knowledgeRatings) {
       const normalizedName = normalize(topicName);
       let topicValue = topicMap.get(normalizedName);
 
@@ -192,10 +209,8 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     if (connection) await connection.rollback();
-    console.error("Database error details:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Database error";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    console.error("Failed to save demographics:", error instanceof Error ? error.name : "Unknown error");
+    return NextResponse.json({ error: "Failed to save demographic details" }, { status: 500 });
   } finally {
     if (connection) connection.release();
   }

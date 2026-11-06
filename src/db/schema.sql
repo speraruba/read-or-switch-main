@@ -1,5 +1,6 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS part_b_story_ratings;
 DROP TABLE IF EXISTS study_text_responses;
 DROP TABLE IF EXISTS participants;
 CREATE TABLE IF NOT EXISTS participants (
@@ -467,6 +468,7 @@ CREATE TABLE `part_a_letter_item` (
     `sid` varchar(100) NOT NULL,
     `round_number` tinyint NOT NULL,
     `item_index` tinyint NOT NULL,
+    `round_completion_time_ms` INT UNSIGNED NULL,
     `left_str` varchar(64) NOT NULL,
     `right_str` varchar(64) NOT NULL,
     `correct_answer` char(1) NOT NULL,
@@ -565,5 +567,19 @@ CREATE TABLE IF NOT EXISTS study_text_responses (
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX study_response_lookup (participant_id, part, phase, task),
+    FOREIGN KEY (participant_id) REFERENCES participants(participant_id)
+);
+
+CREATE TABLE IF NOT EXISTS part_b_story_ratings (
+    participant_id BIGINT NOT NULL,
+    phase ENUM('practice', 'formal') NOT NULL,
+    story_id INT NOT NULL,
+    engaging TINYINT UNSIGNED NOT NULL,
+    easy TINYINT UNSIGNED NOT NULL,
+    informative TINYINT UNSIGNED NOT NULL,
+    learned TINYINT UNSIGNED NOT NULL,
+    continue_reading TINYINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (participant_id, phase, story_id),
     FOREIGN KEY (participant_id) REFERENCES participants(participant_id)
 );

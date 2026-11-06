@@ -54,7 +54,7 @@ test("formal reading expires after fifteen reading minutes and excludes ratings"
     assert.deepEqual(clock.snapshot(2401000), { remainingMs: 0, articleTimeMs: 800000 });
 });
 
-for (const duration of [240000, 900000]) {
+for (const duration of [240000, 600000]) {
     test(`story budget ${duration} excludes initial selection, loading, switching and recall`, () => {
         const timer = createActiveReadingTimer(duration);
         assert.equal(timer.snapshot(1000000).remainingMs, duration);

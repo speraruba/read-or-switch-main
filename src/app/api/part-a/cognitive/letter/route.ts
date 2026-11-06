@@ -1,3 +1,5 @@
+import { setTimeout as delay } from "node:timers/promises";
+
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 
@@ -29,68 +31,61 @@ const LETTER_COMPARISON_ROUNDS: Record<number, Array<{ left: string; right: stri
     ],
 };
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<NextResponse> {
+    const body = await request.json().catch(() => null);
+    const { participantId, responses, roundDurations, submissionId } = body ?? {};
+    if ((typeof participantId !== "string" && !Number.isSafeInteger(participantId)) ||
+        !/^\d{1,19}$/.test(String(participantId)) || BigInt(participantId) > BigInt("9223372036854775807") ||
+        !Array.isArray(responses) || !responses.length || responses.length > 20 ||
+        (submissionId !== undefined && (typeof submissionId !== "string" || !/^[0-9a-f-]{36}$/i.test(submissionId)))) {
+        return NextResponse.json({ error: "Invalid speed task submission" }, { status: 400 });
+    }
+
+    // Older clients supplied only item times. New clients reuse the session ID on retries.
+    const sid = submissionId ?? crypto.randomUUID();
+    const values: (string | number | null)[] = [];
+    const ids = new Set<number>();
+    for (const item of responses) {
+        const id = item?.problemId;
+        if (!Number.isInteger(id) || id < 1 || id > 20 || ids.has(id) ||
+            (item.response !== "S" && item.response !== "D") ||
+            !Number.isInteger(item.reactionTimeMs) || item.reactionTimeMs < 0 || item.reactionTimeMs > 2147483647) {
+            return NextResponse.json({ error: "Invalid speed task response" }, { status: 400 });
+        }
+        ids.add(id);
+        const round = Math.ceil(id / 10);
+        const index = (id - 1) % 10;
+        const problem = LETTER_COMPARISON_ROUNDS[round][index];
+        const duration = roundDurations?.[round] ?? null;
+        if (roundDurations !== undefined && (!Number.isInteger(duration) || duration < item.reactionTimeMs || duration > 4294967295)) {
+            return NextResponse.json({ error: "Invalid round duration" }, { status: 400 });
+        }
+        values.push(participantId, sid, round, index, problem.left, problem.right, problem.answer,
+            item.response, item.response === problem.answer ? 1 : 0, item.reactionTimeMs, duration);
+    }
+
     try {
-        const body = await request.json();
-        const { participantId, responses } = body;
-
-        // responses: Array of { problemId, response, isCorrect, reactionTimeMs }
-
-        if (!participantId || !Array.isArray(responses)) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-        }
-
-        if (!/^\d+$/.test(String(participantId))) {
-            console.error(`Invalid participant ID: ${participantId}`);
-            return NextResponse.json({ error: "Invalid participant ID format" }, { status: 400 });
-        }
-
-        const sid = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-        for (const r of responses) {
-            const pid = parseInt(r.problemId);
-            const roundNumber = Math.ceil(pid / 10);
-            const itemIndex = (pid - 1) % 10; // 0-based for array
-            // DB might want 0 or 1 based. Let's store 0-based index to match array index.
-
-            const roundData = LETTER_COMPARISON_ROUNDS[roundNumber];
-            if (!roundData || !roundData[itemIndex]) {
-                console.warn(`Invalid problem ID ${pid}`);
-                continue;
+        const placeholders = responses.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
+        const insert = `INSERT INTO part_a_letter_item
+             (participant_id, sid, round_number, item_index, left_str, right_str, correct_answer, response,
+              is_correct, reaction_time_ms, round_completion_time_ms)
+             VALUES ${placeholders}
+             ON DUPLICATE KEY UPDATE response=VALUES(response), is_correct=VALUES(is_correct),
+             reaction_time_ms=VALUES(reaction_time_ms), round_completion_time_ms=VALUES(round_completion_time_ms)`;
+        // InnoDB rolls back the entire statement when simultaneous upserts deadlock.
+        for (let attempt = 0; ; attempt++) {
+            try {
+                await query(insert, values);
+                break;
+            } catch (error) {
+                if (attempt >= 4 || !error || typeof error !== "object" ||
+                    !("code" in error) || error.code !== "ER_LOCK_DEADLOCK") throw error;
+                await delay((10 + Math.random() * 20) * 2 ** attempt);
             }
-
-            const problem = roundData[itemIndex];
-
-            // Mapping to DB Schema:
-            // participant_id, sid, round_number, item_index, left_str, right_str, correct_answer, response, is_correct, reaction_time_ms
-
-            await query(
-                `INSERT INTO part_a_letter_item 
-                (participant_id, sid, round_number, item_index, left_str, right_str, correct_answer, response, is_correct, reaction_time_ms) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE 
-                response = VALUES(response), 
-                is_correct = VALUES(is_correct), 
-                reaction_time_ms = VALUES(reaction_time_ms),
-                updated_at = CURRENT_TIMESTAMP(6)`,
-                [
-                    participantId,
-                    sid,
-                    roundNumber,
-                    itemIndex,
-                    problem.left,
-                    problem.right,
-                    problem.answer,
-                    r.response,
-                    r.isCorrect ? 1 : 0, // tinyint
-                    r.reactionTimeMs
-                ]
-            );
         }
-
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Failed to save letter comparison responses:", error);
+        console.error("Failed to save speed task responses:", error);
         return NextResponse.json({ error: "Failed to save responses" }, { status: 500 });
     }
 }

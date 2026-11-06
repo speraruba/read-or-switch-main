@@ -8,7 +8,8 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request): Promise<NextResponse> {
     const origin = request.headers.get("origin");
-    if (!isAllowedRequestOrigin(origin, request.url, process.env.RAILWAY_PUBLIC_DOMAIN)) {
+    const localDevHost = process.env.NODE_ENV === "development" ? request.headers.get("host") : null;
+    if (!isAllowedRequestOrigin(origin, request.url, process.env.RAILWAY_PUBLIC_DOMAIN, localDevHost)) {
         return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
     }
     const apiKey = process.env.OPENAI_API_KEY;

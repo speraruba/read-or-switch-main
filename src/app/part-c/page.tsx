@@ -1,4 +1,5 @@
 "use client";
+import TestSkip from "@/app/components/TestSkip";
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -35,7 +36,6 @@ function PartCContent() {
     const [step, setStep] = useState<"instructions" | "reading" | "recall" | "questions">("instructions");
     const [readingTimer] = useState(() => createActiveReadingTimer(Infinity));
     const getReadingTime = useCallback(() => readingTimer.snapshot(performance.now()).articleTimeMs, [readingTimer]);
-    const [readingPhase, setReadingPhase] = useState<"word-by-word" | "decision">("word-by-word");
 
     // Group sentences by set_id: { [setId]: Sentence[] }
     const [sentenceSets, setSentenceSets] = useState<Record<number, Sentence[]>>({});
@@ -143,7 +143,6 @@ function PartCContent() {
         setCurrentSetId(nextId);
         setCurrentIndex(1); // Always start at 1
         // Reset reading state
-        setReadingPhase("word-by-word");
         setCurrentWordIndex(0);
 
     }, [pickNextSet]);
@@ -168,11 +167,21 @@ function PartCContent() {
         return saved;
     }, [logQueue]);
 
+    // RENDER HELPERS
+    const currentSentence = currentSetId && sentenceSets[currentSetId]?.find(s => s.sentence_index === currentIndex);
+    // Split content into words, removing empty strings
+    const words = currentSentence ? currentSentence.content.trim().split(/\s+/) : [];
+
+    const lastWordVisible = words.length > 0 && currentWordIndex === words.length - 1;
+
     const handleDecision = useCallback(async (action: "continue" | "switch") => {
-        if (currentSetId === null || decisionBusyRef.current || decisionTakenRef.current) return;
+        if (!lastWordVisible || currentSetId === null || decisionBusyRef.current || decisionTakenRef.current) return;
         decisionBusyRef.current = true;
         setIsSaving(true);
         if (!pendingDecisionRef.current) {
+            const duration = readingClock.finish(getReadingTime(), true);
+            if (duration) logAction("word_reveal", currentWordIndex, duration);
+            readingTimer.pause(performance.now());
             pendingDecisionRef.current = action;
             logAction(action);
         }
@@ -181,9 +190,8 @@ function PartCContent() {
             const choice = pendingDecisionRef.current;
             pendingDecisionRef.current = null;
             decisionTakenRef.current = true;
-            if (choice === "continue" && currentIndex < 6) {
+            if (choice === "continue" && sentenceSets[currentSetId].some(sentence => sentence.sentence_index === currentIndex + 1)) {
                 setCurrentIndex(prev => prev + 1);
-                setReadingPhase("word-by-word");
                 setCurrentWordIndex(0);
             } else {
                 startNextSet();
@@ -192,7 +200,7 @@ function PartCContent() {
             decisionBusyRef.current = false;
             setIsSaving(false);
         }
-    }, [currentSetId, currentIndex, logAction, flushLogs, startNextSet]);
+    }, [lastWordVisible, currentSetId, currentIndex, currentWordIndex, readingClock, readingTimer, getReadingTime, sentenceSets, logAction, flushLogs, startNextSet]);
 
     const handleContinue = useCallback(() => handleDecision("continue"), [handleDecision]);
     const handleSwitch = useCallback(() => handleDecision("switch"), [handleDecision]);
@@ -212,26 +220,21 @@ function PartCContent() {
         startNextSet();
     };
 
-    // RENDER HELPERS
-    const currentSentence = currentSetId && sentenceSets[currentSetId]?.find(s => s.sentence_index === currentIndex);
-    // Split content into words, removing empty strings
-    const words = currentSentence ? currentSentence.content.split(" ").filter(w => w.length > 0) : [];
-
     // Use accumulated reading time for the per-word and per-sentence records too.
     useLayoutEffect(() => {
-        if (step === "reading" && readingPhase === "word-by-word" && currentSentence) {
+        if (step === "reading" && currentSentence) {
             readingClock.show(currentSentence.id, currentWordIndex, getReadingTime());
             decisionTakenRef.current = false;
         }
-    }, [step, readingPhase, currentSentence, currentWordIndex, readingClock, getReadingTime]);
+    }, [step, currentSentence, currentWordIndex, readingClock, getReadingTime]);
 
-    // Count only visible words. Decisions, loading, saving and other steps are paused.
+    // The final word stays visible and timed until the participant chooses.
     useLayoutEffect(() => {
-        if (step !== "reading" || readingPhase !== "word-by-word" || !currentSentence) return;
+        if (step !== "reading" || !currentSentence) return;
         readingTimer.startArticle("sentence-reading", performance.now());
         const visibilityChanged = () => {
             if (!isStudyVisible()) readingTimer.pause(performance.now());
-            else readingTimer.resume(performance.now());
+            else if (!pendingDecisionRef.current) readingTimer.resume(performance.now());
         };
         visibilityChanged();
         document.addEventListener("visibilitychange", visibilityChanged);
@@ -241,41 +244,34 @@ function PartCContent() {
             document.removeEventListener("visibilitychange", visibilityChanged);
             document.removeEventListener("fullscreenchange", visibilityChanged);
         };
-    }, [step, readingPhase, currentSentence, readingTimer]);
+    }, [step, currentSentence, readingTimer]);
 
     // Keyboard Listener for SPR (word-by-word phase)
     useEffect(() => {
-        if (step !== "reading" || readingPhase !== "word-by-word") return;
+        if (step !== "reading" || lastWordVisible) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.code === "Space") {
                 e.preventDefault();
 
                 if (e.repeat || e.isComposing || words.length === 0 || !isStudyVisible()) return;
-                const lastWord = currentWordIndex === words.length - 1;
-                const duration = readingClock.finish(getReadingTime(), lastWord);
+                const duration = readingClock.finish(getReadingTime(), false);
                 if (!duration) return;
                 logAction("word_reveal", currentWordIndex, duration);
                 // Saving never delays revealing the next word.
                 void flushLogs();
 
-                if (!lastWord) {
-                    setCurrentWordIndex(prev => prev + 1);
-                } else {
-                    readingTimer.pause(performance.now());
-                    // Finished sentence -> go to decision
-                    setReadingPhase("decision");
-                }
+                setCurrentWordIndex(prev => prev + 1);
             }
         };
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [step, readingPhase, currentWordIndex, words.length, logAction, flushLogs, readingClock, readingTimer, getReadingTime]);
+    }, [step, currentWordIndex, words.length, lastWordVisible, logAction, flushLogs, readingClock, getReadingTime]);
 
     // Keyboard Listener for Decision Phase (F = switch, J = continue)
     useEffect(() => {
-        if (step !== "reading" || readingPhase !== "decision") return;
+        if (step !== "reading" || !lastWordVisible) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.repeat || e.isComposing || e.ctrlKey || e.altKey || e.metaKey || !isStudyVisible()) return;
@@ -293,11 +289,15 @@ function PartCContent() {
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [step, readingPhase, handleSwitch, handleContinue]);
+    }, [step, lastWordVisible, handleSwitch, handleContinue]);
 
 
-    if (loading) return <div>Loading experiment data...</div>;
     if (!participantId) return <div>Missing Participant ID</div>;
+
+    if (loading && step === "instructions") return <div>
+        Loading experiment data...
+        <TestSkip participantId={participantId} onSkip={() => setStep("recall")} />
+    </div>;
 
     const cardClass = "max-w-4xl w-full glass-panel p-10 rounded-2xl shadow-sm transition-all duration-300";
     const buttonBase = "justify-center rounded-lg px-8 py-5 text-xl font-semibold shadow-sm transition-all focus:outline-none focus:ring-2 min-w-[240px]";
@@ -309,28 +309,31 @@ function PartCContent() {
         <div className="min-h-screen flex flex-col items-center justify-center p-6 relative bg-[var(--background)]">
             {step === "instructions" && (
                 <div className={cardClass}>
+                    <TestSkip participantId={participantId} onSkip={handleStart} />
                     <h1 className="text-3xl font-semibold mb-6">Part C: Sentence Reading Study</h1>
                     <div className="text-[var(--foreground)] text-xl leading-relaxed mb-8 space-y-4">
-                        <p>In this task, you will read one sentence at a time.</p>
-                        <p>There is no overall time limit. Read at your own pace. After the last topic, you will recall what you learned using voice input, then answer comprehension questions.</p>
-                        <p>Press the <strong className="text-[var(--foreground)] border border-[var(--border)] px-1 py-0.5 rounded bg-[var(--input-bg)] text-xs uppercase tracking-wider">Spacebar</strong> to reveal each word one by one.</p>
-                        <p>After each sentence, you can choose to <strong>Continue reading</strong> more about the topic, or <strong>Switch topic</strong> to read about something else.</p>
+                        <p>In this study, you will read short paragraphs about different topics. Your goal is to learn as much as you can from the short paragraphs instead of memorizing the text word for word. There is no time limit of this task. During the study, you will see one word of the sentence at a time. Please press the SPACEBAR to reveal each word one by one. It is very important for you to pay attention to the text and do your best to learn from them. Please read at your own pace.</p>
+                        <p>After you read each sentence, you will have a choice:</p>
+                        <ul className="list-disc pl-6 space-y-2">
+                            <li>To continue reading the next sentence in the same paragraph, click “Continue with Next Sentence.”</li>
+                            <li>To switch to a new topic, click “Go to Other Topics.”</li>
+                        </ul>
+                        <p>You will be asked what you have learned at the end of the task. Please try your best to read at your own pace.</p>
+                        <p>When you are ready, please click on the “Start” button.</p>
                     </div>
-                    <button type="button" onClick={handleStart} className={primaryBtn}>Start Task</button>
+                    <button type="button" onClick={handleStart} className={primaryBtn}>Start</button>
                 </div>
             )}
 
+            {step === "reading" && <TestSkip participantId={participantId} onSkip={() => setStep("recall")} disabled={isSaving} />}
             {step === "reading" && currentSentence && (
                 <div className="w-full flex flex-col items-center">
 
-                    {/* SPR View - Always visible to maintain layout, but changes state in decision phase */}
                     <div className="max-w-4xl w-full">
                         <div className="glass-panel relative p-16 rounded-2xl shadow-sm min-h-[400px] flex flex-col justify-center items-center">
                             <div className="flex flex-wrap justify-center gap-x-4 gap-y-8 text-3xl font-mono leading-loose max-w-3xl">
                                 {words.map((word, index) => {
-                                    // In decision phase, we hide everything (or show all underscores).
-                                    // User said "don't reveal the whole sentence".
-                                    const isVisible = readingPhase === "word-by-word" && index === currentWordIndex;
+                                    const isVisible = index === currentWordIndex;
 
                                     return (
                                         <span
@@ -351,20 +354,20 @@ function PartCContent() {
                     </div>
 
                     <div className="w-full mt-8 min-h-[80px] flex flex-col items-center">
-                        {readingPhase === "word-by-word" && (
+                        {!lastWordVisible && (
                             <p className="text-center text-xl font-semibold text-[var(--foreground)]">
                                 Press Spacebar to advance
                             </p>
                         )}
 
-                        {readingPhase === "decision" && (
+                        {lastWordVisible && (
                             <div className="max-w-3xl w-full flex flex-col items-center gap-4 animate-in fade-in duration-300">
                                 <div className="w-full flex flex-col sm:flex-row justify-between items-stretch gap-6 px-4">
                                     <button type="button" onClick={handleSwitch} disabled={isSaving} className={outlineBtn}>
-                                        Go To Other Topics
+                                        Go to Other Topics
                                     </button>
                                     <button type="button" onClick={handleContinue} disabled={isSaving} className={primaryBtn}>
-                                        Continue Reading
+                                        Continue with Next Sentence
                                     </button>
                                 </div>
                                 <p className="text-center text-lg font-semibold text-[var(--foreground)]">

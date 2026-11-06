@@ -2,18 +2,17 @@
 
 import { type ChangeEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 
-import { getReadingRatingQuestions, READING_RATING_INSTRUCTION, type ReadingPhase } from "@/lib/reading-ratings";
+import { getReadingRatingQuestions, READING_RATING_INSTRUCTION } from "@/lib/reading-ratings";
 
 interface SegmentFeedbackProps {
-  phase: ReadingPhase;
   onSubmit: (
     summary: string,
     responses: Array<{ questionId: string; value: number; reactionTimeMs: number }>
   ) => void;
 }
 
-export default function SegmentFeedback({ phase, onSubmit }: SegmentFeedbackProps): React.JSX.Element {
-  const questions = getReadingRatingQuestions(phase);
+export default function SegmentFeedback({ onSubmit }: SegmentFeedbackProps): React.JSX.Element {
+  const questions = getReadingRatingQuestions();
   const [step, setStep] = useState(0);
   const [responses, setResponses] = useState<Record<string, number>>({});
   const [currentValue, setCurrentValue] = useState<number>(50);

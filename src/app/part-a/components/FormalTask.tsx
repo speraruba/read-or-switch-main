@@ -1,4 +1,5 @@
 "use client";
+import TestSkip from "@/app/components/TestSkip";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import RatingDemo from "@/app/components/RatingDemo";
@@ -183,6 +184,7 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
     if (view === "instructions") {
         return (
             <div className="max-w-4xl mx-auto glass-panel p-10 rounded-xl shadow-sm mt-12">
+                <TestSkip participantId={participantId} onSkip={handleStart} />
                 <h2 className="text-3xl font-semibold mb-6 tracking-tight text-[var(--foreground)] text-center">Formal Task Instruction</h2>
                 
                 <div className="text-[var(--muted)] text-lg space-y-6 leading-relaxed text-left">
@@ -205,7 +207,7 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
                         After reading each article within a topic, you will be asked to rate how easy the text was, how much new information you thought was in the article, how much you learned from this article, AND how much you learned overall about Donation, Medical Transplants, and Cancer. You will be asked to make these ratings on a scale from 0 to 100 by moving the circle:
                     </p>
                     
-                    <RatingDemo phase="formal" />
+                    <RatingDemo />
 
                     <p>
                         Again, after reading each article, you can decide to keep reading about this topic by moving to the next article, or to go back to the main page to choose another topic. Once you decide to leave a topic, you will not be able to return.
@@ -238,10 +240,11 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
 
         return (
             <div className="w-full h-full overflow-y-auto flex flex-col p-6 bg-blue-50">
+                <TestSkip participantId={participantId} onSkip={() => setView("summary")} disabled={isLoadingArticle} />
                 <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col mt-8">
                     <div className="flex justify-between items-end mb-12 border-b border-[var(--border)] pb-6">
                         <div>
-                            <h2 className="text-3xl font-serif font-medium text-[var(--foreground)] mb-2">Formal Subtopics</h2>
+                            <h2 className="text-3xl font-serif font-medium text-[var(--foreground)] mb-2">Health Topics</h2>
                             <p className="text-[var(--muted)]">Choose a blue topic to begin reading. Green topics have already been visited.</p>
                         </div>
                         <CountdownTimer seconds={secondsLeft} label="Formal reading time remaining" paused />
@@ -314,6 +317,7 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
 
         return (
             <div className="fixed inset-0 z-50 bg-[var(--surface)] flex flex-col h-screen w-screen">
+                <TestSkip participantId={participantId} onSkip={() => triggerQuestion("switch")} />
                 <div className="shrink-0 h-16 flex items-center justify-between px-6 border-b border-[var(--border)] bg-[var(--surface)]/80 backdrop-blur-md z-20">
                     <div className="flex items-center gap-4">
                         <span className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] border border-[var(--border)] px-2 py-0.5 rounded">
@@ -380,10 +384,11 @@ export default function FormalTask({ participantId, onComplete }: FormalTaskProp
     if (view === "question") {
         return (
             <div className="max-w-4xl mx-auto">
+                <TestSkip participantId={participantId} onSkip={() => setView("summary")} disabled={isSubmitting} />
                 <div className="flex justify-end"><CountdownTimer seconds={secondsLeft} label="Formal reading time remaining" paused /></div>
                 {pendingAction === "finish" && <p className="mt-2 text-center text-[var(--muted)]">Reading time is up. Rate this article before recall.</p>}
                 <fieldset disabled={isSubmitting}>
-                    <SegmentFeedback phase="formal" onSubmit={handleFeedbackSubmit} />
+                    <SegmentFeedback onSubmit={handleFeedbackSubmit} />
                 </fieldset>
             </div>
         );

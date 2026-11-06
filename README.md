@@ -76,13 +76,13 @@ The study consists of the following stages:
 
 1. **Informed Consent** — Participant agrees to the study terms
 2. **Demographics** — Collection of basic user data
-3. **Part A: Multi-text Learning Study** — Practice (4 minutes) → recall → formal reading (15 minutes) → recall
-4. **Part B: Story Reading Study** — Practice stories with titles (4 minutes) → recall → formal stories with titles (15 minutes) → recall
-5. **Part C: Sentence Reading Study** — Instructions → sentence reading (10 minutes) → recall → comprehension questions
-6. **Cognitive Tests** — Letter Comparison (two rounds) → Vocabulary Test
+3. **Part A: Multi-text Learning Study** — Practice (4 minutes) → recall → formal reading (15 minutes) → recall → written summary (about 100 words)
+4. **Part B: Read Short Stories** — Practice (4 reading minutes, rate each story on exit) → recall → formal (10 reading minutes, rate each story on exit) → recall → written summary (about 60 words)
+5. **Part C: Sentence Reading Study** — Instructions → self-paced sentence reading (untimed) → recall → comprehension questions
+6. **Cognitive Tests** — Speed Task (two keyboard-only rounds) → Verbal Task
 7. **Debriefing & Thank You** — Study completion
 
-All five recalls use the same speech-to-text editor and allow typing. Part A article ratings remain within each reading phase. Cognitive tests follow Part C comprehension. Part B comprehension and the legacy Final assessment remain outside the participant flow.
+All five recalls use the same speech-to-text editor with a read-only transcript. Part A article ratings remain within each reading phase. Cognitive tests follow Part C comprehension. Part B comprehension and the legacy Final assessment remain outside the participant flow.
 
 Material audit: `docs/Study Material/part_b_formal_stories.csv` currently has 24 of 48 segments containing only the placeholder `Text`; the local database matches this source. Complete those source passages before running a real study.
 
@@ -96,11 +96,11 @@ A practice, A formal, B practice, B formal, and C recalls default to voice input
 to `.env.local` (server only), restart the app, and start the study with a registered
 participant. Audio goes directly from the browser to OpenAI over WebRTC; the server
 creates a transcription-only session using `gpt-live-transcribe`. Live text is saved
-through the existing summary endpoints; the app does not store audio.
+through the study response endpoint; the app does not store audio.
 
 Use a current Safari or Chromium browser on HTTPS, or `localhost` for development.
 Allow microphone access, click to start, click again to stop, then review and submit.
-Language is detected automatically. The text box stays editable during recording; manual edits are preserved as new speech arrives. Missing keys, denied permissions, interrupted
+Language is detected automatically. The text box displays the live transcript for viewing only. Missing keys, denied permissions, interrupted
 connections and final-transcript timeouts preserve captured text and show a message.
 
 References: [Realtime transcription](https://developers.openai.com/api/docs/guides/realtime-transcription)
@@ -113,14 +113,7 @@ Run `npm run db:migrate:part-c-timing` on an existing database to add columns sa
 New databases get the same columns from `src/db/schema.sql`; material CSV formats
 and material seeders are unchanged because timing is collected at runtime.
 
-`part_c_logs.word_reading_time_ms` stores each word's display-to-Space duration.
-The last word's row also stores `sentence_reading_time_ms`, measured from the
-first word appearing to the last Space press. Both are rounded integer milliseconds
-from browser `performance.now()`. Word indices are zero-based. Sentence totals
-include rendering intervals between words; continue/switch decision time and
-network round trips before the next sentence are excluded. Time away from the tab
-is included (the timer is not paused). Incomplete sentences have word logs but no
-sentence total. Historical rows retain NULL durations; they are not backfilled.
+`part_c_logs.word_reading_time_ms` stores each word’s visible reading duration. Space advances to the next word. When the last word appears, the participant chooses whether to continue or switch. That choice ends the last word’s duration and the sentence total. Hidden tabs, fullscreen interruptions and saving after the choice are excluded. Word indices are zero-based and durations are recorded in milliseconds.
 
 Writes are queued without blocking word changes, and decision navigation waits
 for saving. Failed writes stay queued for retry while the page is open. `event_id`
@@ -131,9 +124,9 @@ Tests: `npm test`; one file: `npm run test:one -- tests/part-c-timing.test.mjs`.
 
 ### Part C recall and completion
 
-Run `npm run db:migrate:part-c-recall` on existing databases to add `part_c_summaries` without resetting data. Part C now runs sentence reading → recall (speech-to-text or typing) → comprehension questions. Recall must save successfully before questions appear. After the comprehension questions save, participants go to `/assessment` for Letter Comparison followed by Vocabulary. Only a successful vocabulary submission advances to `/complete`. Cognitive data continues to use `part_a_letter_item`, `part_a_vocabulary_questions`, and `part_a_vocabulary_responses` for compatibility with existing records; these are active tables despite their historical Part A prefix. Part A has separate Practice and Formal recalls before Part B.
+Run `npm run db:migrate:part-c-recall` on existing databases to add `part_c_summaries` without resetting data. Part C now runs sentence reading → voice recall → comprehension questions. Recall must save successfully before questions appear. After the comprehension questions save, participants go to `/assessment` for Speed Task followed by Verbal Task. Only a successful vocabulary submission advances to `/complete`. Cognitive data continues to use `part_a_letter_item`, `part_a_vocabulary_questions`, and `part_a_vocabulary_responses` for compatibility with existing records; these are active tables despite their historical Part A prefix. Part A has separate Practice and Formal recalls before Part B.
 
-All study countdowns accumulate visible reading time only. Part A (4/15 minutes), Part B (4/15 minutes), and Part C (10 minutes) pause during instructions, topic/story selection, Continue/Switch decisions after sentences, questions/ratings, recall, content loading, and hidden tabs. Part C word/sentence timing uses the same active clock; decision and saving waits are excluded. A/B count while an article remains displayed. Background saves do not stop reading when a word remains displayed. Timeout clips partial-word durations to the remaining reading budget and saves logs before recall. Interrupted sentences use `action_type=timeout`, not a completed `word_reveal`. Saving failures retain data for retry.
+Part A (4/15 minutes) and Part B (4/10 minutes) count only visible reading time. Part C has no countdown. Existing databases need `npm run db:migrate:story-ratings-and-speed` for the per-story ratings and Speed Task round completion times. The production upgrade includes this migration.
 
 ### Existing database: update part names
 

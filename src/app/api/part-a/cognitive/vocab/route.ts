@@ -1,6 +1,8 @@
+import type { RowDataPacket } from "mysql2";
 import { NextResponse } from "next/server";
+
 import { query } from "@/lib/db";
-import { RowDataPacket } from "mysql2";
+import { withParticipantTransaction } from "@/lib/participant-transaction";
 
 export async function GET() {
     try {
@@ -23,7 +25,7 @@ export async function GET() {
                 q.option_5,
                 q.option_6
             ].filter(Boolean) // In case some are null, though schema says NOT NULL
-                .map((opt, idx) => `${idx + 1} - ${opt}`), // Add "1 - " prefix to match frontend expectation
+                .map((opt, idx) => `${idx + 1} - ${opt.toLowerCase() === "not sure about the answer" ? "Not Sure about the answer" : opt}`), // Add "1 - " prefix to match frontend expectation
             correctOption: q.correct_option
         }));
 
@@ -34,53 +36,69 @@ export async function GET() {
     }
 }
 
-export async function POST(request: Request) {
+interface Answer {
+    questionId: number;
+    option: number;
+    reactionTimeMs: number;
+}
+
+function parseAnswers(responses: unknown): Answer[] | null {
+    if (!Array.isArray(responses) || responses.length === 0) return null;
+    const answers: Answer[] = [];
+    const ids = new Set<number>();
+    for (const item of responses) {
+        if (!item || typeof item !== "object") return null;
+        const { responseVal, reactionTimeMs } = item;
+        const questionId = typeof item.questionId === "string" && /^\d+$/.test(item.questionId)
+            ? Number(item.questionId) : item.questionId;
+        const option = typeof responseVal === "string" && /^([1-6])(?: - |$)/.exec(responseVal);
+        if (!Number.isSafeInteger(questionId) || questionId < 1 || ids.has(questionId) || !option ||
+            !Number.isInteger(reactionTimeMs) || reactionTimeMs < 0 || reactionTimeMs > 2147483647) return null;
+        ids.add(questionId);
+        answers.push({ questionId, option: Number(option[1]), reactionTimeMs });
+    }
+    return answers;
+}
+
+export async function POST(request: Request): Promise<NextResponse> {
+    const body = await request.json().catch(() => null);
+    const participantId = body?.participantId;
+    const answers = parseAnswers(body?.responses);
+    if ((typeof participantId !== "string" && !Number.isSafeInteger(participantId)) ||
+        !/^\d{1,19}$/.test(String(participantId)) || BigInt(participantId) > BigInt("9223372036854775807") || !answers) {
+        return NextResponse.json({ error: "Invalid vocabulary submission" }, { status: 400 });
+    }
+
     try {
-        const body = await request.json();
-        const { participantId, responses } = body;
-
-        // responses: Array of { questionId, responseVal, isCorrect, reactionTimeMs }
-
-        if (!participantId || !Array.isArray(responses)) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-        }
-
-        if (!/^\d+$/.test(String(participantId))) {
-            console.error(`Invalid participant ID: ${participantId}`);
-            return NextResponse.json({ error: "Invalid participant ID format" }, { status: 400 });
-        }
-
-
-        for (const r of responses) {
-            // Extract number from "1 - speak..."
-            // Frontend sends "1 - speak...", we want just the number part cs INT
-            let optionNum = 0;
-            if (typeof r.responseVal === 'string') {
-                optionNum = parseInt(r.responseVal.split(' - ')[0], 10);
-            }
-            
-            if (isNaN(optionNum)) {
-                console.warn(`Invalid response value: ${r.responseVal} for question ${r.questionId}`);
-                continue; // Skip invalid response
-            }
-
-            await query(
-                `INSERT INTO part_a_vocabulary_responses 
-                (participant_id, question_id, response_option, is_correct, reaction_time_ms) 
-                VALUES (?, ?, ?, ?, ?)`,
-                [
-                    participantId, 
-                    String(r.questionId), 
-                    optionNum, 
-                    r.isCorrect ? 1 : 0, 
-                    r.reactionTimeMs
-                ]
+        return await withParticipantTransaction(String(participantId), async connection => {
+            const [saved] = await connection.execute<RowDataPacket[]>(
+                "SELECT question_id FROM part_a_vocabulary_responses WHERE participant_id = ?", [participantId]
             );
-        }
-
-        return NextResponse.json({ success: true });
+            const savedIds = new Set(saved.map(row => Number(row.question_id)));
+            const missing = answers.filter(answer => !savedIds.has(answer.questionId));
+            if (missing.length) {
+                const [questions] = await connection.execute<(RowDataPacket & { id: number; correct_option: number })[]>(
+                    "SELECT id, correct_option FROM part_a_vocabulary_questions"
+                );
+                const correctOptions = new Map(questions.map(row => [row.id, row.correct_option]));
+                if (missing.some(answer => !correctOptions.has(answer.questionId))) {
+                    return NextResponse.json({ error: "Unknown vocabulary question" }, { status: 400 });
+                }
+                const placeholders = missing.map(() => "(?, ?, ?, ?, ?)").join(", ");
+                const values = missing.flatMap(answer => [
+                    participantId, String(answer.questionId), answer.option,
+                    Number(answer.option === correctOptions.get(answer.questionId)), answer.reactionTimeMs,
+                ]);
+                await connection.execute(
+                    `INSERT INTO part_a_vocabulary_responses
+                     (participant_id, question_id, response_option, is_correct, reaction_time_ms)
+                     VALUES ${placeholders}`, values
+                );
+            }
+            return NextResponse.json({ success: true });
+        });
     } catch (error) {
-        console.error("Failed to save vocab responses:", error);
+        console.error("Failed to save vocabulary responses:", error instanceof Error ? error.name : "Unknown error");
         return NextResponse.json({ error: "Failed to save responses" }, { status: 500 });
     }
 }

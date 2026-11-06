@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { enterStudyFullscreen, FULLSCREEN_REQUIRED } from "@/lib/study-display";
+import { rememberTestLogin } from "@/lib/test-participant";
 import { getApiPath } from "@/lib/api";
 
 export default function Home() {
@@ -32,6 +33,7 @@ export default function Home() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Your details could not be saved. Please try again.");
+      rememberTestLogin(data.participantId);
       router.push(`/demographics?participant_id=${encodeURIComponent(data.participantId)}`);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Your details could not be saved. Please try again.");
