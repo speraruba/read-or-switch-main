@@ -125,6 +125,7 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Seed endpoints truncate tables and toggle FK checks in development. All five endpoints return 404 in production.
 - Migration script loads `.env.local` manually; ensure it exists before `npx tsx src/db/migrate.ts`.
 - Connection pool is small; avoid long-held connections/transactions in API routes.
+- Retired tables `part_b_practice_actions` and `part_b_formal_actions` have no runtime callers and were removed. Keep seeders/schema free of them. Participant-data resets are explicit maintenance operations, never part of production startup migrations.
 
 ## 16) New code checklist (agents)
 - Ensure `.env.local` is present if touching DB.

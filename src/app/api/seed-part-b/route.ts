@@ -15,8 +15,8 @@ export async function GET() {
             // await connection.beginTransaction();
 
             const tablesToDrop = [
-                'part_b_practice_responses', 'part_b_practice_questions', 'part_b_practice_actions', 'part_b_practice_segments', 'part_b_practice_stories', 'part_b_practice_summaries',
-                'part_b_formal_responses', 'part_b_formal_questions', 'part_b_formal_actions', 'part_b_formal_segments', 'part_b_formal_stories', 'part_b_formal_summaries'
+                'part_b_practice_responses', 'part_b_practice_questions', 'part_b_practice_segments', 'part_b_practice_stories', 'part_b_practice_summaries',
+                'part_b_formal_responses', 'part_b_formal_questions', 'part_b_formal_segments', 'part_b_formal_stories', 'part_b_formal_summaries'
             ];
 
             await connection.query('SET FOREIGN_KEY_CHECKS = 0');

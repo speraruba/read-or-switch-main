@@ -145,20 +145,6 @@ CREATE TABLE IF NOT EXISTS part_b_practice_segments (
     FOREIGN KEY (story_id) REFERENCES part_b_practice_stories(id) ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS part_b_practice_actions;
-CREATE TABLE IF NOT EXISTS part_b_practice_actions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    participant_id BIGINT NOT NULL,
-    story_id INT NOT NULL,
-    segment_id INT,
-    action_type ENUM('continue', 'switch', 'start_story') NOT NULL,
-    reading_time_ms INT,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (participant_id) REFERENCES participants(participant_id),
-    FOREIGN KEY (story_id) REFERENCES part_b_practice_stories(id),
-    FOREIGN KEY (segment_id) REFERENCES part_b_practice_segments(id)
-);
-
 DROP TABLE IF EXISTS part_b_practice_summaries;
 CREATE TABLE IF NOT EXISTS part_b_practice_summaries (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -223,20 +209,6 @@ CREATE TABLE IF NOT EXISTS part_b_formal_segments (
     predict_id INT,
     sp2_con_id VARCHAR(50),
     FOREIGN KEY (story_id) REFERENCES part_b_formal_stories(id) ON DELETE CASCADE
-);
-
-DROP TABLE IF EXISTS part_b_formal_actions;
-CREATE TABLE IF NOT EXISTS part_b_formal_actions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    participant_id BIGINT NOT NULL,
-    story_id INT NOT NULL,
-    segment_id INT,
-    action_type ENUM('continue', 'switch', 'start_story') NOT NULL,
-    reading_time_ms INT,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (participant_id) REFERENCES participants(participant_id),
-    FOREIGN KEY (story_id) REFERENCES part_b_formal_stories(id),
-    FOREIGN KEY (segment_id) REFERENCES part_b_formal_segments(id)
 );
 
 DROP TABLE IF EXISTS part_b_formal_summaries;

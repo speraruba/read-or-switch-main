@@ -160,7 +160,6 @@ async function populatePartB(connection: mysql.Connection) {
     await connection.query('TRUNCATE TABLE part_b_story_ratings');
     await connection.query('TRUNCATE TABLE part_b_formal_responses');
     await connection.query('TRUNCATE TABLE part_b_formal_questions');
-    await connection.query('TRUNCATE TABLE part_b_formal_actions');
     await connection.query('TRUNCATE TABLE part_b_formal_summaries');
     await connection.query('TRUNCATE TABLE part_b_formal_segments');
     await connection.query('TRUNCATE TABLE part_b_formal_stories');
@@ -168,7 +167,6 @@ async function populatePartB(connection: mysql.Connection) {
 
     await connection.query('TRUNCATE TABLE part_b_practice_responses');
     await connection.query('TRUNCATE TABLE part_b_practice_questions');
-    await connection.query('TRUNCATE TABLE part_b_practice_actions');
     await connection.query('TRUNCATE TABLE part_b_practice_segments');
     await connection.query('TRUNCATE TABLE part_b_practice_stories');
     await connection.query('TRUNCATE TABLE part_b_practice_topic');
