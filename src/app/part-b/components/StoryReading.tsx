@@ -1,11 +1,12 @@
 "use client";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+
 import TestSkip from "@/app/components/TestSkip";
 import CountdownTimer from "@/app/components/CountdownTimer";
 import { isStudyVisible } from "@/lib/study-display";
 import { getApiPath } from "@/lib/api";
-
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createActiveReadingTimer } from "@/lib/active-reading-timer";
+import { createPartBActionWriter, type PartBAction } from "@/lib/part-b-actions";
 import StorySurvey from "./StorySurvey";
 import type { Segment, Story } from "../types";
 
@@ -32,6 +33,48 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
   const currentSegment = segments[currentSegmentIndex];
   const articleKey = currentStory && currentSegment ? `${currentStory.id}:${currentSegment.id}` : null;
 
+  const [saveError, setSaveError] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [writer] = useState(() => createPartBActionWriter(async event => {
+    const response = await fetch(getApiPath("/api/part-b/actions"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(event),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) throw new Error("Failed to save reading progress");
+  }));
+
+  const saveAction = useCallback(async (storyId: number, segmentId: number, action: PartBAction["action"], readingTimeMs: number, onSaved: () => void) => {
+    if (writer.pending()) return;
+    setIsSaving(true);
+    setSaveError(false);
+    const saved = await writer.save({ eventId: crypto.randomUUID(), participantId, phase, storyId, segmentId, action, readingTimeMs }, onSaved);
+    setIsSaving(false);
+    setSaveError(!saved);
+  }, [writer, participantId, phase]);
+
+  const finishStory = useCallback((action: "switch" | "timeout" | "test_skip") => {
+    if (!currentStory || !currentSegment || writer.pending()) return;
+    const { remainingMs, articleTimeMs } = readingTimer.pause(performance.now());
+    setTimeLeft(Math.ceil(remainingMs / 1000));
+    void saveAction(currentStory.id, currentSegment.id, action, articleTimeMs, () => {
+      setView(remainingMs === 0 || action === "test_skip" ? "final-survey" : "survey");
+    });
+  }, [currentStory, currentSegment, readingTimer, writer, saveAction]);
+
+  const saveStatus = (saveError || isSaving) && (
+    <div role={saveError ? "alert" : "status"} className="px-6 py-3 border-b border-[var(--border)] bg-[var(--surface)] text-center">
+      {saveError ? <>Could not save your reading progress. Please retry to continue. <button type="button" className="underline font-semibold focus-ring" onClick={async () => {
+        setIsSaving(true);
+        setSaveError(false);
+        const saved = await writer.retry();
+        setIsSaving(false);
+        setSaveError(!saved);
+      }}>Retry</button></> : "Saving reading progress..."}
+    </div>
+  );
+
   useEffect(() => {
     fetch(getApiPath(`/api/part-b/stories?phase=${phase}&participantId=${participantId}`))
       .then(res => res.json())
@@ -46,13 +89,12 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
       const { remainingMs } = readingTimer.snapshot(performance.now());
       setTimeLeft(Math.ceil(remainingMs / 1000));
       if (remainingMs === 0) {
-        readingTimer.pause(performance.now());
-        setView("final-survey");
+        finishStory("timeout");
       }
     };
     const visibilityChanged = () => {
       if (!isStudyVisible()) readingTimer.pause(performance.now());
-      else readingTimer.resume(performance.now());
+      else if (!writer.pending()) readingTimer.resume(performance.now());
       update();
     };
     visibilityChanged();
@@ -65,18 +107,10 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
       document.removeEventListener("visibilitychange", visibilityChanged);
       document.removeEventListener("fullscreenchange", visibilityChanged);
     };
-  }, [view, articleKey, readingTimer]);
-
-  const logAction = async (storyId: number, segmentId: number, type: "continue" | "switch" | "start_story") => {
-    try {
-      console.log(`Action: ${type}, Story: ${storyId}, Segment: ${segmentId}`);
-    } catch (e) {
-      console.error("Failed to log action", e);
-    }
-  };
+  }, [view, articleKey, readingTimer, writer, finishStory]);
 
   const handleSelectStory = async (story: Story) => {
-    if (loadingRef.current || visitedStoryIds.has(story.id)) return;
+    if (loadingRef.current || writer.pending() || visitedStoryIds.has(story.id)) return;
     loadingRef.current = true;
     setIsLoading(true);
     setCurrentStory(story);
@@ -89,10 +123,11 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
       const data = await res.json();
 
       if (Array.isArray(data) && data.length > 0) {
-        setVisitedStoryIds(previous => new Set(previous).add(story.id));
-        setSegments(data);
-        setView("reading");
-        logAction(story.id, data[0]?.id, "start_story");
+        await saveAction(story.id, data[0].id, "start_story", 0, () => {
+          setVisitedStoryIds(previous => new Set(previous).add(story.id));
+          setSegments(data);
+          setView("reading");
+        });
       } else {
         throw new Error("No story segments available");
       }
@@ -106,29 +141,18 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
   };
 
   const handleContinue = () => {
-    if (!currentStory) return;
-    if (currentSegmentIndex < segments.length - 1) {
-      const nextIndex = currentSegmentIndex + 1;
-      setCurrentSegmentIndex(nextIndex);
-      logAction(currentStory.id, segments[nextIndex].id, "continue");
-
+    if (!currentStory || !currentSegment || writer.pending() || currentSegmentIndex >= segments.length - 1) return;
+    const { remainingMs, articleTimeMs } = readingTimer.pause(performance.now());
+    setTimeLeft(Math.ceil(remainingMs / 1000));
+    if (remainingMs === 0) {
+      finishStory("timeout");
+      return;
+    }
+    void saveAction(currentStory.id, currentSegment.id, "continue", articleTimeMs, () => {
+      setCurrentSegmentIndex(currentSegmentIndex + 1);
       const scrollContainer = document.getElementById("story-scroll-container");
       if (scrollContainer) scrollContainer.scrollTop = 0;
-    } else {
-      finishStory();
-    }
-  };
-
-  const handleSwitch = () => {
-    if (!currentStory) return;
-    logAction(currentStory.id, segments[currentSegmentIndex]?.id, "switch");
-    finishStory();
-  };
-
-  const finishStory = () => {
-    const { remainingMs } = readingTimer.pause(performance.now());
-    setTimeLeft(Math.ceil(remainingMs / 1000));
-    setView(remainingMs === 0 ? "final-survey" : "survey");
+    });
   };
 
   if ((view === "survey" || view === "final-survey") && currentStory) {
@@ -156,7 +180,8 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
     const allVisited = stories.length > 0 && stories.every(s => visitedStoryIds.has(s.id));
     return (
       <div className="w-full h-full overflow-y-auto flex flex-col p-6 bg-blue-50">
-        <TestSkip participantId={participantId} onSkip={onComplete} />
+        <TestSkip participantId={participantId} onSkip={onComplete} disabled={isLoading || isSaving || saveError} />
+        {saveStatus}
         <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col">
           <div className="flex justify-between items-end mb-12 border-b border-[var(--border)] pb-6">
             <div>
@@ -174,7 +199,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
                   type="button"
                   key={story.id}
                   onClick={() => handleSelectStory(story)}
-                  disabled={isLoading || isRead}
+                  disabled={isLoading || isSaving || saveError || isRead}
                   className={`relative p-8 rounded-xl border text-left transition-all duration-300 flex flex-col justify-between min-h-48 group ${
                     isRead
                       ? "bg-emerald-100 border-emerald-800 text-emerald-950"
@@ -222,7 +247,8 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
 
   return (
     <div className="fixed inset-0 z-50 bg-[var(--surface)] flex flex-col h-screen w-screen">
-      <TestSkip participantId={participantId} onSkip={() => setView("final-survey")} />
+      <TestSkip participantId={participantId} onSkip={() => finishStory("test_skip")} disabled={isSaving || saveError} />
+      {saveStatus}
       <div className="shrink-0 h-16 flex items-center justify-between px-6 border-b border-[var(--border)] bg-[var(--surface)]/80 backdrop-blur-md z-20">
         <div className="flex items-center gap-4">
           <span className="text-xs font-bold uppercase tracking-widest text-[var(--muted)] border border-[var(--border)] px-2 py-0.5 rounded">
@@ -267,7 +293,8 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
           <button
             type="button"
-            onClick={handleSwitch}
+            onClick={() => finishStory("switch")}
+            disabled={isSaving || saveError}
             className="border-2 border-[var(--primary)] text-[var(--primary)] px-8 py-3 rounded-lg hover:bg-[var(--primary)] hover:text-[var(--primary-fg)] active:scale-[0.98] transition-all font-semibold text-sm shadow-sm hover:shadow-md focus-ring"
           >
             Go to Other Stories
@@ -280,7 +307,7 @@ export default function StoryReading({ participantId, phase, durationSeconds, on
           <button
             type="button"
             onClick={handleContinue}
-            disabled={!currentSegment || currentSegmentIndex === segments.length - 1}
+            disabled={isSaving || saveError || !currentSegment || currentSegmentIndex === segments.length - 1}
             className="bg-[var(--primary)] text-[var(--primary-fg)] px-8 py-3 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all font-semibold text-sm shadow-md hover:shadow-lg focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continue with Next Chapter

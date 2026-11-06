@@ -85,6 +85,28 @@ try {
             assert.equal(item.reaction_time_ms, index + i);
         });
     }
+    for (const phase of ["practice", "formal"]) {
+        await connection.query(`INSERT INTO part_b_${phase}_stories (id, title) VALUES (1, 'QA story')`);
+        await connection.query(`INSERT INTO part_b_${phase}_segments (id, story_id, content, segment_order, sp2_con_id)
+            VALUES (1, 1, 'QA condition zero', 1, '0'), (2, 1, 'QA condition one', 1, '1')`);
+        await Promise.all(ids.map(async participantId => {
+            for (const action of ["start_story", "continue", "switch", "timeout"]) {
+                const event = {
+                    eventId: randomUUID(), participantId, phase, storyId: 1,
+                    segmentId: Number(participantId) % 2 + 1, action,
+                    readingTimeMs: action === "start_story" ? 0 : 1234,
+                };
+                await Promise.all([post("part-b/actions", event), post("part-b/actions", event)]);
+                await post("part-b/actions", { ...event, readingTimeMs: action === "start_story" ? 0 : 5678 });
+                const [rows] = await connection.execute(
+                    `SELECT action_type, reading_time_ms, segment_id FROM part_b_${phase}_actions WHERE participant_id=? AND event_id=?`,
+                    [participantId, event.eventId]
+                );
+                assert.deepEqual(rows, [{ action_type: action, reading_time_ms: event.readingTimeMs, segment_id: event.segmentId }]);
+            }
+        }));
+    }
+    console.log("PASS: Part B practice/formal, 10 concurrent participants, 240 submissions, 80 immutable unique events.");
     console.log("PASS: 10 participants, 10 simultaneous submission waves, participant-specific answers verified.");
 } finally {
     if (child && child.exitCode === null && child.signalCode === null) {

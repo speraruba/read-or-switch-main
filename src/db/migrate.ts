@@ -157,6 +157,8 @@ async function populatePartB(connection: mysql.Connection) {
     await connection.query("SET FOREIGN_KEY_CHECKS = 0");
 
     // Clear existing data
+    await connection.query('TRUNCATE TABLE part_b_practice_actions');
+    await connection.query('TRUNCATE TABLE part_b_formal_actions');
     await connection.query('TRUNCATE TABLE part_b_story_ratings');
     await connection.query('TRUNCATE TABLE part_b_formal_responses');
     await connection.query('TRUNCATE TABLE part_b_formal_questions');
@@ -580,6 +582,21 @@ async function main() {
     try {
         connection = await mysql.createConnection(process.env.MYSQL_URL ? { uri: process.env.MYSQL_URL } : dbConfig);
         console.log('Connected.');
+        if (process.argv.includes("--part-b-actions")) {
+            const sql = fs.readFileSync(new URL("./part-b-actions.sql", import.meta.url), "utf8");
+            for (const statement of sql.split(";").filter(value => value.trim())) await connection.query(statement);
+            for (const table of ["part_b_practice_actions", "part_b_formal_actions"]) {
+                const [columns] = await connection.query<RowDataPacket[]>(`SHOW COLUMNS FROM ${table} LIKE 'event_id'`);
+                if (!columns.length) {
+                    await connection.query(`ALTER TABLE ${table} ADD COLUMN event_id CHAR(36) NULL,
+                        ADD UNIQUE KEY participant_event (participant_id, event_id)`);
+                }
+                await connection.query(`ALTER TABLE ${table} MODIFY COLUMN action_type
+                    ENUM('continue', 'switch', 'start_story', 'timeout', 'test_skip') NOT NULL`);
+            }
+            console.log("Part B reading actions ready; existing data preserved.");
+            return;
+        }
         if (process.argv.includes("--demographics")) {
             // Widen storage without rewriting historical responses or reseeding.
             await connection.query("ALTER TABLE demographics MODIFY COLUMN gender VARCHAR(255) NULL");

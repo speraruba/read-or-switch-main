@@ -125,7 +125,7 @@ Audience: coding agents; follow before modifying code. Target length ~150 lines;
 - Seed endpoints truncate tables and toggle FK checks in development. All five endpoints return 404 in production.
 - Migration script loads `.env.local` manually; ensure it exists before `npx tsx src/db/migrate.ts`.
 - Connection pool is small; avoid long-held connections/transactions in API routes.
-- Retired tables `part_b_practice_actions` and `part_b_formal_actions` have no runtime callers and were removed. Keep seeders/schema free of them. Participant-data resets are explicit maintenance operations, never part of production startup migrations.
+- Part B reading actions use `part_b_practice_actions` / `part_b_formal_actions` via `/api/part-b/actions`. Run `npm run db:migrate:part-b-actions` for existing installations (also in production upgrade). Each event has an idempotent UUID; retries never overwrite the original row. `continue`/`switch` duration belongs to the segment being left; `start_story` has zero duration. `timeout` and `test_skip` preserve the final segment duration. Only visible fullscreen reading time counts. Failed saves block progression with Retry. Validate with `npm run test:one -- tests/part-b-actions.test.mjs`; `npm run test:concurrency` also verifies both phases with 10 concurrent participants and 240 retry submissions (requires a built/packaged standalone app and local MySQL; creates and removes an isolated database). Participant-data resets are explicit maintenance operations, never part of production startup migrations.
 
 ## 16) New code checklist (agents)
 - Ensure `.env.local` is present if touching DB.
